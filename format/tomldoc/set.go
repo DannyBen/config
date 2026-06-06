@@ -253,6 +253,17 @@ func Delete(source, path string, selectors []string) (string, error) {
 	return applyEdits(source, planned), nil
 }
 
+func DeleteIfEmpty(source, path string) (string, error) {
+	entries, err := List(source, path)
+	if err != nil {
+		return "", err
+	}
+	if len(entries) > 0 {
+		return source, nil
+	}
+	return Delete(source, path, nil)
+}
+
 func Get(source, path string) (string, error) {
 	if err := parseTOMLSource(source); err != nil {
 		return "", err

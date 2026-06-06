@@ -137,6 +137,7 @@ func TestDeleteHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "CONFIG_FILE\n    Path to the config file")
 	assertContains(t, stdout.String(), "KEY\n    Dot notation string describing the intended config container")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
+	assertContains(t, stdout.String(), "--if-empty\n    Only delete when the container has no values")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")
@@ -796,6 +797,23 @@ func TestDeleteDiffPrintsUnifiedDiff(t *testing.T) {
 	assertContains(t, stdout.String(), "-color = \"blue\"\n")
 	if got := readFile(t, path); got != "title = \"demo\"\n\n[style]\ncolor = \"blue\"\nfont = \"arial\"\n" {
 		t.Fatalf("file changed during diff: %q", got)
+	}
+}
+
+func TestDeleteIfEmptyNoOpsWhenContainerHasValues(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[style]\ncolor = \"blue\"\n")
+
+	err := Execute([]string{"delete", path, "style", "--if-empty"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if got := readFile(t, path); got != "[style]\ncolor = \"blue\"\n" {
+		t.Fatalf("file mismatch: %q", got)
 	}
 }
 

@@ -16,6 +16,10 @@ func (tomlDocument) Delete(source, key string, selectors []string) (string, erro
 	return tomldoc.Delete(source, key, selectors)
 }
 
+func (tomlDocument) DeleteIfEmpty(source, key string) (string, error) {
+	return tomldoc.DeleteIfEmpty(source, key)
+}
+
 func (tomlDocument) Get(source, key string) (string, error) {
 	return tomldoc.Get(source, key)
 }

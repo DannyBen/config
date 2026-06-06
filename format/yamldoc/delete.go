@@ -1,12 +1,15 @@
 package yamldoc
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
+
+var errNotEmpty = errors.New("not empty")
 
 func deleteValue(source, path string, rawSelectors []string) (string, error) {
 	root, err := parseYAML(source)
@@ -30,6 +33,40 @@ func deleteValue(source, path string, rawSelectors []string) (string, error) {
 	} else {
 		planned, err = planDeletePath(source, root, key)
 	}
+	if err != nil {
+		return "", err
+	}
+	return applyEdit(source, planned), nil
+}
+
+func deleteEmptyValue(source, path string) (string, error) {
+	root, err := parseYAML(source)
+	if err != nil {
+		return "", err
+	}
+	key, err := parsePath(path)
+	if err != nil {
+		return "", err
+	}
+	if len(key) == 0 {
+		return "", fmt.Errorf("empty path")
+	}
+	if root == nil {
+		return "", fmt.Errorf("%s is not set", formatPath(key))
+	}
+
+	found, ok := findTarget(root, key)
+	if !ok {
+		return "", fmt.Errorf("%s is not set", formatPath(key))
+	}
+	found.path = key
+	if err := ensureEmptyDeletableContainer(source, found, root); err != nil {
+		if errors.Is(err, errNotEmpty) {
+			return source, nil
+		}
+		return "", err
+	}
+	planned, err := containerTargetRange(source, found)
 	if err != nil {
 		return "", err
 	}
@@ -152,6 +189,56 @@ func ensureDeletableContainer(node, doc *yaml.Node, path []string) error {
 	default:
 		return fmt.Errorf("unsupported YAML node at %s", formatPath(path))
 	}
+}
+
+func ensureEmptyDeletableContainer(source string, found target, doc *yaml.Node) error {
+	if found.valueNode.Kind == yaml.AliasNode {
+		return fmt.Errorf("%s is an alias; refusing to delete shared YAML state", formatPath(found.path))
+	}
+	node, err := resolveAlias(found.valueNode, nil)
+	if err != nil {
+		return err
+	}
+	switch node.Kind {
+	case yaml.ScalarNode:
+		if isImplicitNullValue(source, found) {
+			return nil
+		}
+		return errNotEmpty
+	case yaml.MappingNode, yaml.SequenceNode:
+		if node.Anchor != "" && hasAliasReference(doc, node.Anchor) {
+			return fmt.Errorf("%s defines anchor %q that is still referenced", formatPath(found.path), node.Anchor)
+		}
+		if len(node.Content) > 0 {
+			return errNotEmpty
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported YAML node at %s", formatPath(found.path))
+	}
+}
+
+func isImplicitNullValue(source string, found target) bool {
+	node := found.valueNode
+	if node.Tag != "!!null" || node.Value != "" || node.Line != found.keyNode.Line {
+		return false
+	}
+	start, end, err := lineRange(source, found.keyNode.Line)
+	if err != nil {
+		return false
+	}
+	line := source[start:end]
+	column := found.keyNode.Column - 1
+	if column < 0 || column+len(found.keyNode.Value) > len(line) {
+		return false
+	}
+	afterKey := line[column+len(found.keyNode.Value):]
+	colon := strings.IndexByte(afterKey, ':')
+	if colon < 0 {
+		return false
+	}
+	afterColon := strings.TrimSpace(afterKey[colon+1:])
+	return afterColon == "" || strings.HasPrefix(afterColon, "#")
 }
 
 func containerTargetRange(source string, found target) (edit, error) {

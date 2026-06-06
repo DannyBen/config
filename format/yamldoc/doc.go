@@ -42,6 +42,10 @@ func Delete(source, key string, selectors []string) (string, error) {
 	return deleteValue(source, key, selectors)
 }
 
+func DeleteIfEmpty(source, key string) (string, error) {
+	return deleteEmptyValue(source, key)
+}
+
 func Get(source, key string) (string, error) {
 	root, err := parseYAML(source)
 	if err != nil {

@@ -54,6 +54,7 @@ type deleteOptions struct {
 	configFile string
 	key        string
 	on         []string
+	ifEmpty    bool
 	dry        bool
 	diff       bool
 	color      bool
@@ -240,6 +241,7 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 	}
 	cmd.SetHelpFunc(helpPrinter("delete"))
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
+	cmd.Flags().BoolVar(&opts.ifEmpty, "if-empty", false, "Only delete when the container has no values")
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
@@ -520,7 +522,13 @@ func isNotSetError(err error) bool {
 }
 
 func runDelete(opts deleteOptions, stdout, stderr io.Writer) error {
+	if opts.ifEmpty && len(opts.on) > 0 {
+		return errors.New("flag --if-empty cannot be used with --on")
+	}
 	return runEdit("delete", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
+		if opts.ifEmpty {
+			return doc.DeleteIfEmpty(source, opts.key)
+		}
 		return doc.Delete(source, opts.key, opts.on)
 	})
 }

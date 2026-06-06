@@ -16,6 +16,10 @@ func (yamlDocument) Delete(source, key string, selectors []string) (string, erro
 	return yamldoc.Delete(source, key, selectors)
 }
 
+func (yamlDocument) DeleteIfEmpty(source, key string) (string, error) {
+	return yamldoc.DeleteIfEmpty(source, key)
+}
+
 func (yamlDocument) Get(source, key string) (string, error) {
 	return yamldoc.Get(source, key)
 }

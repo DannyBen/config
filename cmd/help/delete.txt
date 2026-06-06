@@ -15,6 +15,9 @@ Options:
   --on FIELD:VALUE
     Select a record by FIELD:VALUE. May be repeated.
 
+  --if-empty
+    Only delete when the container has no values
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -28,3 +31,4 @@ Examples:
   config delete path/to/config.toml style
   config delete servers.1
   config delete servers --on name:web
+  config delete tui.keymap.composer --if-empty
