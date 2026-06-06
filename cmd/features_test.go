@@ -110,85 +110,124 @@ func runFeatureSpec(t *testing.T, spec featureSpec) {
 	}
 	for formatName, source := range spec.sources {
 		t.Run(formatName, func(t *testing.T) {
-			ext := "." + formatName
-			targetName := "config" + ext
-			temp := t.TempDir()
-			target := filepath.Join(temp, targetName)
-			if err := os.WriteFile(target, []byte(source), 0644); err != nil {
-				t.Fatal(err)
-			}
-			for name, content := range spec.files {
-				if err := os.WriteFile(filepath.Join(temp, name), []byte(content), 0644); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			var allStdout, allStderr bytes.Buffer
-			for _, command := range spec.commands {
-				commandText := command.text
-
-				stdin := ""
-				if before, after, ok := strings.Cut(commandText, " < "); ok {
-					commandText = strings.TrimSpace(before)
-					stdin = readFile(t, filepath.Join(temp, strings.TrimSpace(after)))
-				}
-				args, splitErr := splitCommand(commandText)
-				if splitErr != nil {
-					t.Fatalf("invalid command %q: %v", commandText, splitErr)
-				}
-				if len(args) == 0 {
-					continue
-				}
-				if args[0] != "config" {
-					t.Fatalf("command must start with config: %q", commandText)
-				}
-
-				var stdout, stderr bytes.Buffer
-				t.Setenv("CONFIG_FILE", target)
-				err := ExecuteWithIO(args[1:], "1.2.3", strings.NewReader(stdin), &stdout, &stderr)
-				if command.exitCode != 0 {
-					if err == nil {
-						t.Fatalf("Execute(%q) returned nil error, want error", commandText)
-					}
-					PrintError(err, &stderr)
-				} else if err != nil {
-					t.Fatalf("Execute(%q) returned error: %v\nstderr:\n%s", commandText, err, stderr.String())
-				}
-				if command.exitCode == 0 && stderr.Len() != 0 {
-					t.Fatalf("unexpected stderr for %q:\n%s", commandText, stderr.String())
-				}
-				gotStdout := normalizeExampleOutput(stdout.String(), target, targetName)
-				gotStderr := normalizeExampleOutput(stderr.String(), target, targetName)
-				if command.hasOutputExpectations() {
-					wantStdout := expectedFeatureOutput(command.stdout, command.stdoutByFormat, formatName)
-					if gotStdout != wantStdout {
-						t.Fatalf("stdout mismatch for %q\n%s", commandText, unifiedDiff("stdout", wantStdout, gotStdout))
-					}
-					wantStderr := expectedFeatureOutput(command.stderr, command.stderrByFormat, formatName)
-					if gotStderr != wantStderr {
-						t.Fatalf("stderr mismatch for %q\n%s", commandText, unifiedDiff("stderr", wantStderr, gotStderr))
-					}
-				} else {
-					allStdout.WriteString(gotStdout)
-					allStderr.WriteString(gotStderr)
-				}
-			}
-
-			want := source
-			if result, ok := spec.results[formatName]; ok {
-				want = result
-			}
-			got := readFile(t, target)
-			if normalizeFeatureFileResult(got) != normalizeFeatureFileResult(want) {
-				t.Fatalf("%s result mismatch\n%s", formatName, unifiedDiff(targetName, want, got))
-			}
-			if allStdout.Len() != 0 {
-				t.Fatalf("unexpected stdout\n%s", unifiedDiff("stdout", "", allStdout.String()))
-			}
-			if allStderr.Len() != 0 {
-				t.Fatalf("unexpected stderr\n%s", unifiedDiff("stderr", "", allStderr.String()))
-			}
+			runFeatureFormat(t, spec, formatName, source)
 		})
+	}
+}
+
+func runFeatureFormat(t *testing.T, spec featureSpec, formatName, source string) {
+	t.Helper()
+	temp, target, targetName := writeFeatureFiles(t, spec, formatName, source)
+
+	var allStdout, allStderr bytes.Buffer
+	for _, command := range spec.commands {
+		gotStdout, gotStderr, collect := runFeatureCommand(t, command, temp, target, targetName, formatName)
+		if collect {
+			allStdout.WriteString(gotStdout)
+			allStderr.WriteString(gotStderr)
+		}
+	}
+
+	verifyFeatureResult(t, spec, formatName, source, target, targetName)
+	if allStdout.Len() != 0 {
+		t.Fatalf("unexpected stdout\n%s", unifiedDiff("stdout", "", allStdout.String()))
+	}
+	if allStderr.Len() != 0 {
+		t.Fatalf("unexpected stderr\n%s", unifiedDiff("stderr", "", allStderr.String()))
+	}
+}
+
+func writeFeatureFiles(t *testing.T, spec featureSpec, formatName, source string) (string, string, string) {
+	t.Helper()
+	targetName := "config." + formatName
+	temp := t.TempDir()
+	target := filepath.Join(temp, targetName)
+	if err := os.WriteFile(target, []byte(source), 0644); err != nil {
+		t.Fatal(err)
+	}
+	for name, content := range spec.files {
+		if err := os.WriteFile(filepath.Join(temp, name), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return temp, target, targetName
+}
+
+func runFeatureCommand(t *testing.T, command featureCommand, temp, target, targetName, formatName string) (string, string, bool) {
+	t.Helper()
+	commandText, stdin := featureCommandInput(t, command.text, temp)
+	args, splitErr := splitCommand(commandText)
+	if splitErr != nil {
+		t.Fatalf("invalid command %q: %v", commandText, splitErr)
+	}
+	if len(args) == 0 {
+		return "", "", false
+	}
+	if args[0] != "config" {
+		t.Fatalf("command must start with config: %q", commandText)
+	}
+
+	var stdout, stderr bytes.Buffer
+	t.Setenv("CONFIG_FILE", target)
+	err := ExecuteWithIO(args[1:], "1.2.3", strings.NewReader(stdin), &stdout, &stderr)
+	verifyFeatureCommandExit(t, command, commandText, err, &stderr)
+
+	gotStdout := normalizeExampleOutput(stdout.String(), target, targetName)
+	gotStderr := normalizeExampleOutput(stderr.String(), target, targetName)
+	if command.hasOutputExpectations() {
+		verifyFeatureCommandOutput(t, command, commandText, formatName, gotStdout, gotStderr)
+		return "", "", false
+	}
+	return gotStdout, gotStderr, true
+}
+
+func featureCommandInput(t *testing.T, commandText, temp string) (string, string) {
+	t.Helper()
+	before, after, ok := strings.Cut(commandText, " < ")
+	if !ok {
+		return commandText, ""
+	}
+	return strings.TrimSpace(before), readFile(t, filepath.Join(temp, strings.TrimSpace(after)))
+}
+
+func verifyFeatureCommandExit(t *testing.T, command featureCommand, commandText string, err error, stderr *bytes.Buffer) {
+	t.Helper()
+	if command.exitCode != 0 {
+		if err == nil {
+			t.Fatalf("Execute(%q) returned nil error, want error", commandText)
+		}
+		PrintError(err, stderr)
+		return
+	}
+	if err != nil {
+		t.Fatalf("Execute(%q) returned error: %v\nstderr:\n%s", commandText, err, stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("unexpected stderr for %q:\n%s", commandText, stderr.String())
+	}
+}
+
+func verifyFeatureCommandOutput(t *testing.T, command featureCommand, commandText, formatName, gotStdout, gotStderr string) {
+	t.Helper()
+	wantStdout := expectedFeatureOutput(command.stdout, command.stdoutByFormat, formatName)
+	if gotStdout != wantStdout {
+		t.Fatalf("stdout mismatch for %q\n%s", commandText, unifiedDiff("stdout", wantStdout, gotStdout))
+	}
+	wantStderr := expectedFeatureOutput(command.stderr, command.stderrByFormat, formatName)
+	if gotStderr != wantStderr {
+		t.Fatalf("stderr mismatch for %q\n%s", commandText, unifiedDiff("stderr", wantStderr, gotStderr))
+	}
+}
+
+func verifyFeatureResult(t *testing.T, spec featureSpec, formatName, source, target, targetName string) {
+	t.Helper()
+	want := source
+	if result, ok := spec.results[formatName]; ok {
+		want = result
+	}
+	got := readFile(t, target)
+	if normalizeFeatureFileResult(got) != normalizeFeatureFileResult(want) {
+		t.Fatalf("%s result mismatch\n%s", formatName, unifiedDiff(targetName, want, got))
 	}
 }
 
@@ -217,15 +256,7 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := featureSpec{
-		name:    strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)),
-		sources: make(map[string]string),
-		files:   make(map[string]string),
-		results: make(map[string]string),
-	}
-	if strings.HasPrefix(filepath.Base(path), "PENDING") {
-		spec.pending = true
-	}
+	spec := newFeatureSpec(path)
 	section := ""
 	lines := strings.Split(string(content), "\n")
 	for i := 0; i < len(lines); i++ {
@@ -241,9 +272,7 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 		}
 		if strings.HasPrefix(line, "## ") {
 			section = strings.TrimSpace(strings.TrimPrefix(line, "## "))
-			if section == "STDOUT" || section == "STDERR" || strings.HasPrefix(section, "STDOUT ") || strings.HasPrefix(section, "STDERR ") {
-				t.Fatalf("%s: %s sections are not supported; use command-local arrow directives", path, section)
-			}
+			validateFeatureSection(t, path, section)
 			continue
 		}
 		if strings.HasPrefix(line, "```") {
@@ -252,26 +281,7 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 				t.Fatalf("%s: fenced code block missing format at line %d", path, i+1)
 			}
 			block, next := readFeatureFence(t, path, lines, i+1)
-			switch section {
-			case "Source Files":
-				if name == "" {
-					spec.sources[language] = block
-				} else {
-					spec.files[name] = block
-				}
-			case "Result Files":
-				if name != "" {
-					t.Fatalf("%s: result file block cannot have filename %q", path, name)
-				}
-				spec.results[language] = block
-			case "Commands":
-				if language != "shell" && language != "sh" {
-					t.Fatalf("%s: command block must use shell, got %q", path, language)
-				}
-				parseFeatureCommandBlock(t, path, &spec, block)
-			default:
-				t.Fatalf("%s: unexpected fenced block in section %q", path, section)
-			}
+			parseFeatureFenceBlock(t, path, &spec, section, language, name, block)
 			i = next
 			continue
 		}
@@ -283,13 +293,62 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 			continue
 		}
 	}
+	validateFeatureSpec(t, path, spec)
+	return spec
+}
+
+func newFeatureSpec(path string) featureSpec {
+	spec := featureSpec{
+		name:    strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)),
+		sources: make(map[string]string),
+		files:   make(map[string]string),
+		results: make(map[string]string),
+	}
+	if strings.HasPrefix(filepath.Base(path), "PENDING") {
+		spec.pending = true
+	}
+	return spec
+}
+
+func validateFeatureSection(t *testing.T, path, section string) {
+	t.Helper()
+	if section == "STDOUT" || section == "STDERR" || strings.HasPrefix(section, "STDOUT ") || strings.HasPrefix(section, "STDERR ") {
+		t.Fatalf("%s: %s sections are not supported; use command-local arrow directives", path, section)
+	}
+}
+
+func parseFeatureFenceBlock(t *testing.T, path string, spec *featureSpec, section, language, name, block string) {
+	t.Helper()
+	switch section {
+	case "Source Files":
+		if name == "" {
+			spec.sources[language] = block
+		} else {
+			spec.files[name] = block
+		}
+	case "Result Files":
+		if name != "" {
+			t.Fatalf("%s: result file block cannot have filename %q", path, name)
+		}
+		spec.results[language] = block
+	case "Commands":
+		if language != "shell" && language != "sh" {
+			t.Fatalf("%s: command block must use shell, got %q", path, language)
+		}
+		parseFeatureCommandBlock(t, path, spec, block)
+	default:
+		t.Fatalf("%s: unexpected fenced block in section %q", path, section)
+	}
+}
+
+func validateFeatureSpec(t *testing.T, path string, spec featureSpec) {
+	t.Helper()
 	if len(spec.sources) == 0 {
 		t.Fatalf("%s: missing source files", path)
 	}
 	if len(spec.commands) == 0 {
 		t.Fatalf("%s: missing commands", path)
 	}
-	return spec
 }
 
 func parseFeatureCommandBlock(t *testing.T, path string, spec *featureSpec, block string) {
