@@ -26,7 +26,7 @@ func unsetValue(source, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedUnset(source, planned, key)
 }
 
 func unsetValueIn(source, collectionPath string, rawSelectors []string, path string) (string, error) {
@@ -81,7 +81,7 @@ func unsetValueIn(source, collectionPath string, rawSelectors []string, path str
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedUnset(source, planned, fullPath)
 }
 
 func planUnsetFromBase(source string, doc, base *yaml.Node, fullPath, relative []string) (edit, error) {
