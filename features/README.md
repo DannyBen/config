@@ -9,3 +9,7 @@ and the final config file when the command edits data.
 The same files are also the acceptance tests. Running `op acceptance` executes
 the command transcripts and checks the results for every format shown in the
 feature file.
+
+Files whose names start with `PENDING-`, or files that contain a leading
+`> PENDING ...` note before the first section, are documented future behavior
+and are skipped by the acceptance runner.

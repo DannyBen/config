@@ -1,4 +1,4 @@
-module config
+module github.com/dannyben/config
 
 go 1.25.7
 
@@ -8,6 +8,7 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/neongreen/tomlsawyer v0.0.0-20260329085106-8bed390e05b0
 	github.com/pelletier/go-toml/v2 v2.3.1
+	github.com/pmezard/go-difflib v1.0.0
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 )

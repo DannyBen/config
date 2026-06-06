@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 
-	"config/format"
-	"config/help"
+	"github.com/dannyben/config/format"
+	"github.com/dannyben/config/help"
 
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/spf13/cobra"
 )
 
@@ -307,7 +307,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "list", "help"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "list"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -585,159 +585,15 @@ func validatePreviewOptions(dry, diff, color bool) error {
 }
 
 func unifiedDiff(name, before, after string) string {
-	const contextLines = 3
-
-	beforeLines := strings.SplitAfter(before, "\n")
-	afterLines := strings.SplitAfter(after, "\n")
-	if len(beforeLines) > 0 && beforeLines[len(beforeLines)-1] == "" {
-		beforeLines = beforeLines[:len(beforeLines)-1]
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(before),
+		B:        difflib.SplitLines(after),
+		FromFile: name,
+		ToFile:   name,
+		Context:  3,
 	}
-	if len(afterLines) > 0 && afterLines[len(afterLines)-1] == "" {
-		afterLines = afterLines[:len(afterLines)-1]
-	}
-
-	var out strings.Builder
-	fmt.Fprintf(&out, "--- %s\n+++ %s\n", name, name)
-	for _, hunk := range diffHunks(lineDiff(beforeLines, afterLines), contextLines) {
-		fmt.Fprintf(&out, "@@ -%s +%s @@\n", diffRange(hunk.beforeStart, hunk.beforeCount), diffRange(hunk.afterStart, hunk.afterCount))
-		for _, op := range hunk.ops {
-			writeDiffOp(&out, op)
-		}
-	}
-	return out.String()
-}
-
-func writeDiffOp(out *strings.Builder, op diffOp) {
-	out.WriteByte(op.kind)
-	out.WriteString(op.text)
-	if !strings.HasSuffix(op.text, "\n") {
-		out.WriteByte('\n')
-		out.WriteString("\\ No newline at end of file\n")
-	}
-}
-
-type diffOp struct {
-	kind byte
-	text string
-}
-
-type diffHunk struct {
-	beforeStart int
-	beforeCount int
-	afterStart  int
-	afterCount  int
-	ops         []diffOp
-}
-
-func lineDiff(before, after []string) []diffOp {
-	n, m := len(before), len(after)
-	dp := make([][]int, n+1)
-	for i := range dp {
-		dp[i] = make([]int, m+1)
-	}
-	for i := n - 1; i >= 0; i-- {
-		for j := m - 1; j >= 0; j-- {
-			if before[i] == after[j] {
-				dp[i][j] = dp[i+1][j+1] + 1
-			} else if dp[i+1][j] >= dp[i][j+1] {
-				dp[i][j] = dp[i+1][j]
-			} else {
-				dp[i][j] = dp[i][j+1]
-			}
-		}
-	}
-
-	var ops []diffOp
-	i, j := 0, 0
-	for i < n && j < m {
-		if before[i] == after[j] {
-			ops = append(ops, diffOp{kind: ' ', text: before[i]})
-			i++
-			j++
-		} else if dp[i+1][j] >= dp[i][j+1] {
-			ops = append(ops, diffOp{kind: '-', text: before[i]})
-			i++
-		} else {
-			ops = append(ops, diffOp{kind: '+', text: after[j]})
-			j++
-		}
-	}
-	for ; i < n; i++ {
-		ops = append(ops, diffOp{kind: '-', text: before[i]})
-	}
-	for ; j < m; j++ {
-		ops = append(ops, diffOp{kind: '+', text: after[j]})
-	}
-	return ops
-}
-
-func diffHunks(ops []diffOp, contextLines int) []diffHunk {
-	if len(ops) == 0 {
-		return nil
-	}
-
-	beforeAt := make([]int, len(ops))
-	afterAt := make([]int, len(ops))
-	beforeLine, afterLine := 1, 1
-	for i, op := range ops {
-		beforeAt[i] = beforeLine
-		afterAt[i] = afterLine
-		switch op.kind {
-		case ' ':
-			beforeLine++
-			afterLine++
-		case '-':
-			beforeLine++
-		case '+':
-			afterLine++
-		}
-	}
-
-	var ranges [][2]int
-	for i, op := range ops {
-		if op.kind == ' ' {
-			continue
-		}
-		start := max(0, i-contextLines)
-		end := min(len(ops), i+contextLines+1)
-		if len(ranges) > 0 && start <= ranges[len(ranges)-1][1] {
-			if end > ranges[len(ranges)-1][1] {
-				ranges[len(ranges)-1][1] = end
-			}
-			continue
-		}
-		ranges = append(ranges, [2]int{start, end})
-	}
-
-	hunks := make([]diffHunk, 0, len(ranges))
-	for _, r := range ranges {
-		hunkOps := ops[r[0]:r[1]]
-		hunk := diffHunk{
-			beforeStart: beforeAt[r[0]],
-			afterStart:  afterAt[r[0]],
-			ops:         hunkOps,
-		}
-		for _, op := range hunkOps {
-			switch op.kind {
-			case ' ':
-				hunk.beforeCount++
-				hunk.afterCount++
-			case '-':
-				hunk.beforeCount++
-			case '+':
-				hunk.afterCount++
-			}
-		}
-		hunks = append(hunks, hunk)
-	}
-	return hunks
-}
-
-func diffRange(start, count int) string {
-	if count == 1 {
-		return strconv.Itoa(start)
-	}
-	return fmt.Sprintf("%d,%d", start, count)
+	text, _ := difflib.GetUnifiedDiffString(diff)
+	return text
 }
 
 func colorizeDiff(diff string) string {

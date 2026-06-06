@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"config/cmd"
+	"github.com/dannyben/config/cmd"
 )
 
 var Version = "0.0.0-dev"

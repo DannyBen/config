@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"config/internal/reporter"
+	"github.com/dannyben/config/internal/reporter"
 )
 
 const envLogLevel = "CONFIG_LOG_LEVEL"

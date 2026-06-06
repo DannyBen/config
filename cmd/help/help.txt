@@ -8,6 +8,7 @@ Commands:
   set
   get
   unset
+  delete
   list
 
 Topics:
@@ -16,4 +17,3 @@ Topics:
 Examples:
   config help set
   config help environment
-

@@ -3,7 +3,7 @@ package cmd
 import (
 	"testing"
 
-	"config/format"
+	"github.com/dannyben/config/format"
 )
 
 func TestRenderListUsesUnifiedKeyValuePresentation(t *testing.T) {

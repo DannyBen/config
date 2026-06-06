@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"config/format"
+	"github.com/dannyben/config/format"
 )
 
 const (

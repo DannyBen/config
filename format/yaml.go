@@ -1,6 +1,6 @@
 package format
 
-import "config/format/yamldoc"
+import "github.com/dannyben/config/format/yamldoc"
 
 type yamlDocument struct{}
 

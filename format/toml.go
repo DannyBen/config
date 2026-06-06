@@ -1,6 +1,6 @@
 package format
 
-import "config/format/tomldoc"
+import "github.com/dannyben/config/format/tomldoc"
 
 type tomlDocument struct{}
 

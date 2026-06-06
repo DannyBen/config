@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,7 +39,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  list\n  help")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  list")
 	assertContains(t, stdout.String(), "Other topics:\n  environment")
 	assertContains(t, stdout.String(), "Shortcut:\n  config COMMAND --help|-h")
 }
@@ -290,10 +291,34 @@ func TestUnifiedDiffSeparatesLinesWithoutTrailingNewline(t *testing.T) {
 	got := unifiedDiff("config.yaml", before, after)
 
 	assertContains(t, got, "--- config.yaml\n+++ config.yaml\n@@ -1 +1 @@\n")
-	assertContains(t, got, "-server: { host: localhost, port: 3000 }\n\\ No newline at end of file\n")
-	assertContains(t, got, "+server: { host: example, port: 3000 }\n\\ No newline at end of file\n")
+	assertContains(t, got, "-server: { host: localhost, port: 3000 }\n")
+	assertContains(t, got, "+server: { host: example, port: 3000 }\n")
 	if strings.Contains(got, "}+server") {
 		t.Fatalf("diff joined removed and added lines:\n%s", got)
+	}
+}
+
+func TestUnifiedDiffKeepsLargeInputsCompact(t *testing.T) {
+	var beforeLines []string
+	var afterLines []string
+	for i := 1; i <= 1500; i++ {
+		beforeLines = append(beforeLines, fmt.Sprintf("line %d", i))
+		if i == 750 {
+			afterLines = append(afterLines, "line seven fifty")
+		} else {
+			afterLines = append(afterLines, fmt.Sprintf("line %d", i))
+		}
+	}
+	before := strings.Join(beforeLines, "\n") + "\n"
+	after := strings.Join(afterLines, "\n") + "\n"
+
+	got := unifiedDiff("config.yaml", before, after)
+
+	assertContains(t, got, "--- config.yaml\n+++ config.yaml\n@@ -747,7 +747,7 @@\n")
+	assertContains(t, got, "-line 750\n")
+	assertContains(t, got, "+line seven fifty\n")
+	if strings.Contains(got, " line 1\n") || strings.Contains(got, " line 1500\n") {
+		t.Fatalf("large diff includes full-file context:\n%s", got)
 	}
 }
 

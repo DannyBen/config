@@ -18,6 +18,12 @@ Future support is planned for INI-like, JSON and perhaps other formats.
 eget dannyben/config
 ```
 
+### With go install
+
+```bash
+go install github.com/dannyben/config@latest
+```
+
 ### From GitHub Releases
 
 Download the archive for your operating system and CPU from the repository's
