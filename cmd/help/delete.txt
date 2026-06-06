@@ -1,0 +1,30 @@
+Delete a config container
+
+Usage:
+  config delete [CONFIG_FILE] KEY [options]
+  config delete --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Dot notation string describing the intended config container
+
+Options:
+  --on FIELD:VALUE
+    Select a record by FIELD:VALUE. May be repeated.
+
+  --dry, -n
+    Print the updated config without modifying the file
+
+  --diff, -d
+    Print a unified diff without modifying the file
+
+  --color, -c
+    Colorize diff output
+
+Examples:
+  config delete path/to/config.toml style
+  config delete servers.1
+  config delete servers --on name:web

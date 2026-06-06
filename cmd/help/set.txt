@@ -1,0 +1,68 @@
+Create or update config values
+
+Usage:
+  config set [CONFIG_FILE] KEY VALUE... [options]
+  config set --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Dot notation string describing the intended config key
+
+  VALUE...
+    Value to store. Single values are parsed as TOML literals when possible;
+    otherwise they are stored as strings. Multiple values are stored as an
+    array. Use `-` as the single value to read from stdin.
+
+Options:
+  --in COLLECTION
+    Edit a record in COLLECTION
+
+  --on FIELD:VALUE
+    Select or create a record by FIELD:VALUE. Must be used with --in.
+
+  --array, -a
+    Store VALUE as an array, even when only one value is provided
+
+  --string, -s
+    Store VALUE as a string, even when it looks like a TOML literal
+
+  --dry, -n
+    Print the updated config without modifying the file
+
+  --diff, -d
+    Print a unified diff without modifying the file
+
+  --color, -c
+    Colorize diff output
+
+Examples:
+  # Simple update
+  config set path/to/config.toml server.port 3000
+
+  # Array update
+  config set path/to/config.toml server.ports 3000 3001
+
+  # Indexed array-record update
+  config set path/to/config.toml servers.0.port 3000
+
+  # Unique array-record update or create
+  config set path/to/config.toml port 3000 --in servers --on name:web
+
+  # Single-value array
+  config set path/to/config.toml server.ports 3000 --array
+
+  # TOML literal value
+  config set path/to/config.toml release.date 2027-03-24
+
+  # String escape hatch
+  config set path/to/config.toml version 1.0 --string
+
+  # Priming a config file using environment variable
+  export CONFIG_FILE=~/.codex/config.toml
+  config set server.port 3000
+
+  # Reading a multiline string from stdin
+  printf 'hello\nworld' | config set path/to/config.toml title.intro - --string

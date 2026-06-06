@@ -1,0 +1,18 @@
+Show config values
+
+Usage:
+  config list [CONFIG_FILE] [KEY]
+  config list --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Optional key or table path to list
+
+Examples:
+  config list path/to/config.toml
+  config list path/to/config.toml database
+  config list path/to/config.toml database.port
+  config list

@@ -1,0 +1,19 @@
+Show command help or topic help
+
+Usage:
+  config help [COMMAND|TOPIC]
+  config help --help | -h
+
+Commands:
+  set
+  get
+  unset
+  list
+
+Topics:
+  environment
+
+Examples:
+  config help set
+  config help environment
+

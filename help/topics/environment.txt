@@ -1,0 +1,27 @@
+Topic: environment
+
+The `config` command reads a small set of environment variables.
+
+**Target file**
+
+  `CONFIG_FILE`
+    Default config file used when a command omits `CONFIG_FILE`.
+
+    Example:
+
+    ```
+    export CONFIG_FILE=~/.codex/config.toml
+    config set server.port 3000
+    ```
+
+**Logging**
+
+  `CONFIG_LOG_LEVEL`
+    Sets the log level for this command. Supported values are `debug`,
+    `info`, `warn`, `warning`, and `error`.
+
+  `LOG_LEVEL`
+    Fallback log level when `CONFIG_LOG_LEVEL` is not set.
+
+  `NO_COLOR`
+    Disables ANSI color in help and logger output when set to any value.

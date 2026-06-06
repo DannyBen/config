@@ -1,0 +1,13 @@
+Manipulate config files
+
+Usage:
+  config COMMAND [options]
+  config --help | -h | --version | -v
+
+Commands:
+  set     Create or update config values
+  get     Show a config value
+  unset   Delete a config value
+  delete  Delete a config container
+  list    Show config values
+  help    Show command help or topic help

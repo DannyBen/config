@@ -1,0 +1,31 @@
+Show a config value
+
+Usage:
+  config get [CONFIG_FILE] KEY [options]
+  config get --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Dot notation string describing the intended config key
+
+Notes:
+  Scalar values and arrays of scalar values are returned. Tables, objects,
+  inline tables, and record collections are refused; use `config list` to
+  inspect keys under a container.
+  Values are printed in a format-neutral display form, not as the original
+  source literal.
+
+Options:
+  --in COLLECTION
+    Read a field from a record in COLLECTION. Must be used with --on.
+
+  --on FIELD:VALUE
+    Select a record by FIELD:VALUE. May be repeated.
+
+Examples:
+  config get path/to/config.toml server.port
+  config get server.port
+  config get path/to/config.toml port --in servers --on name:api
