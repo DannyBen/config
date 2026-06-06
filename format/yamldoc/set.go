@@ -67,11 +67,7 @@ func setArrayValue(source, path string, values []string) (string, error) {
 	if root == nil {
 		return "", fmt.Errorf("%s parent is not set", formatPath(key[:len(key)-1]))
 	}
-	formatted, err := formatArray(values, 0)
-	if err != nil {
-		return "", err
-	}
-	planned, err := planSetFormatted(source, root, key, formatted, "")
+	planned, err := planSetArray(source, root, key, values)
 	if err != nil {
 		return "", err
 	}
@@ -87,7 +83,7 @@ func setValueIn(source, collectionPath, rawSelector, path, raw string, mode setM
 
 func setArrayValueIn(source, collectionPath, rawSelector, path string, values []string) (string, error) {
 	return setIn(source, collectionPath, rawSelector, path, true, func(indent int, existing *yaml.Node) (string, string, error) {
-		value, err := formatArray(values, indent)
+		value, err := formatArray(values, indent, existing)
 		if err != nil {
 			return "", "", err
 		}
@@ -211,6 +207,24 @@ func planSetFormatted(source string, root *yaml.Node, key []string, value, logic
 	})
 }
 
+func planSetArray(source string, root *yaml.Node, key []string, values []string) (edit, error) {
+	if found, ok := findTarget(root, key); ok {
+		indent := replacementIndent(found)
+		value, err := formatArray(values, indent, found.valueNode)
+		if err != nil {
+			return edit{}, err
+		}
+		return replaceTarget(source, found, value, "", true)
+	}
+	return planInsertMissing(source, root, root, key, key, func(indent int, existing *yaml.Node) (string, string, error) {
+		value, err := formatArray(values, indent, existing)
+		if err != nil {
+			return "", "", err
+		}
+		return value, "", nil
+	})
+}
+
 func replaceTarget(source string, found target, value, logical string, allowContainer bool) (edit, error) {
 	if found.valueNode.Kind == yaml.AliasNode {
 		got, err := renderGetValue(found.valueNode, found.path)
@@ -237,9 +251,14 @@ func replaceTarget(source string, found target, value, logical string, allowCont
 		if err != nil {
 			return edit{}, err
 		}
+		if strings.HasPrefix(value, "\n") && found.valueNode.Line == found.keyNode.Line {
+			start = trimLeftInlineValueSpace(source, start)
+		}
 		text := value
 		if found.valueNode.Line != found.keyNode.Line {
-			text = " " + value
+			if !strings.HasPrefix(value, "\n") {
+				text = " " + value
+			}
 			if end > start && source[end-1] == '\n' {
 				text += "\n"
 			}
@@ -250,10 +269,20 @@ func replaceTarget(source string, found target, value, logical string, allowCont
 	if err != nil {
 		return edit{}, err
 	}
+	if strings.HasPrefix(value, "\n") {
+		start = trimLeftInlineValueSpace(source, start)
+	}
 	if (found.valueNode.Style == yaml.LiteralStyle || found.valueNode.Style == yaml.FoldedStyle) && end > start && source[end-1] == '\n' {
 		value += "\n"
 	}
 	return edit{start: start, end: end, text: value}, nil
+}
+
+func trimLeftInlineValueSpace(source string, start int) int {
+	for start > 0 && (source[start-1] == ' ' || source[start-1] == '\t') {
+		start--
+	}
+	return start
 }
 
 func sequenceValueRange(source string, found target) (int, int, error) {
@@ -777,12 +806,30 @@ func plainString(raw string) bool {
 	return value.Kind == yaml.ScalarNode && value.Tag == "!!str" && value.Value == raw
 }
 
-func formatArray(values []string, indent int) (string, error) {
+func formatArray(values []string, indent int, existing *yaml.Node) (string, error) {
 	parts := make([]string, 0, len(values))
 	for _, value := range values {
 		parts = append(parts, formatInferredValue(value))
 	}
+	if blockArrayStyle(values, existing) {
+		prefix := strings.Repeat(" ", indent)
+		lines := make([]string, 0, len(parts))
+		for _, part := range parts {
+			lines = append(lines, prefix+"- "+part)
+		}
+		return "\n" + strings.Join(lines, "\n"), nil
+	}
 	return "[" + strings.Join(parts, ", ") + "]", nil
+}
+
+func blockArrayStyle(values []string, existing *yaml.Node) bool {
+	if existing == nil {
+		return true
+	}
+	if existing.Kind == yaml.SequenceNode && existing.Style != yaml.FlowStyle {
+		return true
+	}
+	return len(values) >= 5
 }
 
 func literalBlock(raw string, indent int) string {

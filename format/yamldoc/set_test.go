@@ -242,7 +242,21 @@ func TestSetArrayReplacesBlockSequence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SetArray returned error: %v", err)
 	}
-	want := "tags: [api, worker]\n"
+	want := "tags:\n  - api\n  - worker\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestSetArrayConvertsFlowSequenceAtThreshold(t *testing.T) {
+	source := "tags: [dev, stage]\n"
+
+	got, err := SetArray(source, "tags", []string{"dev", "stage", "api", "sales", "db"})
+
+	if err != nil {
+		t.Fatalf("SetArray returned error: %v", err)
+	}
+	want := "tags:\n  - dev\n  - stage\n  - api\n  - sales\n  - db\n"
 	if got != want {
 		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
 	}
@@ -260,7 +274,7 @@ func TestArrayAddAppendsMissingValuesAndCreatesArray(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ArrayAdd returned error: %v", err)
 	}
-	want := "roots: [$HOME/.cache, /tmp]\nextra: [/var/tmp]\n"
+	want := "roots: [$HOME/.cache, /tmp]\nextra:\n  - /var/tmp\n"
 	if got != want {
 		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
 	}

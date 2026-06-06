@@ -8,6 +8,8 @@ Behavior:
   Does nothing when KEY is not set.
   Ignores values that are not present.
   Deletes KEY when no values remain.
+  Existing YAML block arrays stay block style. Existing flow arrays stay flow
+  style unless the remaining array has five or more values.
 
 Parameters:
   CONFIG_FILE

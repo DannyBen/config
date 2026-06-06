@@ -449,11 +449,15 @@ func TestParseFeatureSpec(t *testing.T) {
 		t.Fatalf("refusal stderr by format = %#v", refusalsSpec.commands[2].stderrByFormat)
 	}
 
-	pending := parseFeatureSpec(t, filepath.Join("..", "features", "array", "PENDING-long-arrays.md"))
+	pendingPath := filepath.Join(t.TempDir(), "PENDING-example.md")
+	if err := os.WriteFile(pendingPath, []byte("# pending/example\n\n> PENDING Example pending reason.\n\n## Source Files\n\n```yaml\nvalue: old\n```\n\n## Commands\n\n```shell\nconfig set value new\n```\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	pending := parseFeatureSpec(t, pendingPath)
 	if !pending.pending {
 		t.Fatal("pending marker was not parsed")
 	}
-	if !strings.Contains(pending.pendingReason, "long-array formatting") {
+	if !strings.Contains(pending.pendingReason, "Example pending reason") {
 		t.Fatalf("pending reason = %q", pending.pendingReason)
 	}
 

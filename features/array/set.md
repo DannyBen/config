@@ -16,14 +16,19 @@ roots = ["/tmp"]
 
 ```shell
 config array set roots "$HOME/.cache" /var/tmp
+config array set extra /opt /srv
 ```
 
 ## Result Files
 
 ```yaml
 roots: [$HOME/.cache, /var/tmp]
+extra:
+  - /opt
+  - /srv
 ```
 
 ```toml
 roots = ["$HOME/.cache", "/var/tmp"]
+extra = ["/opt", "/srv"]
 ```

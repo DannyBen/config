@@ -24,7 +24,8 @@ config array add extra /var/tmp
 
 ```yaml
 roots: [$HOME/.cache, /tmp]
-extra: [/var/tmp]
+extra:
+  - /var/tmp
 ```
 
 ```toml
