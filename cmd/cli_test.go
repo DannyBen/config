@@ -142,6 +142,7 @@ func TestUnsetHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config unset [CONFIG_FILE] KEY [options]")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Remove a field from a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
+	assertContains(t, stdout.String(), "--if VALUE\n    Only unset when the current value matches VALUE")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")
@@ -651,6 +652,31 @@ func TestUnsetDiffPrintsUnifiedDiff(t *testing.T) {
 	assertContains(t, stdout.String(), "-port = 5432\n")
 	if got := readFile(t, path); got != "[database]\nhost = \"localhost\"\nport = 5432\n" {
 		t.Fatalf("file changed during diff: %q", got)
+	}
+}
+
+func TestUnsetIfValueOnlyUnsetsMatchingScalar(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "submit = \"tab\"\nqueue = \"alt-w\"\n")
+
+	err := Execute([]string{"unset", path, "submit", "--if", "tab"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	err = Execute([]string{"unset", path, "queue", "--if", "alt-q"}, "1.2.3", &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	err = Execute([]string{"unset", path, "missing", "--if", "tab"}, "1.2.3", &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if got := readFile(t, path); got != "queue = \"alt-w\"\n" {
+		t.Fatalf("file mismatch: %q", got)
 	}
 }
 

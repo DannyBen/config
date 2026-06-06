@@ -18,6 +18,9 @@ Options:
   --on FIELD:VALUE
     Select a record by FIELD:VALUE. May be repeated.
 
+  --if VALUE
+    Only unset when the current value matches VALUE
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -30,4 +33,5 @@ Options:
 Examples:
   config unset path/to/config.toml server.port
   config unset server.port
+  config unset server.port --if 3000
   config unset path/to/config.toml port --in servers --on name:api

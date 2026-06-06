@@ -449,7 +449,7 @@ func TestParseFeatureSpec(t *testing.T) {
 		t.Fatalf("refusal stderr by format = %#v", refusalsSpec.commands[2].stderrByFormat)
 	}
 
-	pending := parseFeatureSpec(t, pendingFeatureSpecPath(t))
+	pending := parseFeatureSpec(t, filepath.Join("..", "features", "set", "PENDING-long-arrays.md"))
 	if !pending.pending {
 		t.Fatal("pending marker was not parsed")
 	}
@@ -460,18 +460,6 @@ func TestParseFeatureSpec(t *testing.T) {
 	if language, name := parseFenceInfo("text value.txt"); language != "text" || name != "value.txt" {
 		t.Fatalf("parseFenceInfo = %q %q", language, name)
 	}
-}
-
-func pendingFeatureSpecPath(t *testing.T) string {
-	t.Helper()
-	for _, path := range featureSpecPaths(t, filepath.Join("..", "features")) {
-		spec := parseFeatureSpec(t, path)
-		if spec.pending {
-			return path
-		}
-	}
-	t.Fatal("missing pending feature spec")
-	return ""
 }
 
 func splitCommand(command string) ([]string, error) {
