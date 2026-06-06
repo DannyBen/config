@@ -34,6 +34,7 @@ put the `config` binary somewhere on your `PATH`.
 
 - Read scalar values with script-friendly output.
 - Set, unset, delete, and list values by dot path.
+- Replace, add, and remove scalar array values with `config array`.
 - Preserve comments and source formatting where possible.
 - Infer common value types such as numbers, booleans, nulls, and dates.
 - Create missing parent mappings or tables when the edit is clear.

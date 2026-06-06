@@ -12,6 +12,9 @@
 
 ## Useful Commands
 
+The command catalog is in `op.conf`; inspect it for available Opcode commands
+and run those commands with `op`.
+
 ```bash
 go test ./...
 op acceptance
