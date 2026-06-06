@@ -55,7 +55,7 @@ func TestHelpCommandShowsCommandHelp(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Create or update config values")
-	assertContains(t, stdout.String(), "config set [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "config set [CONFIG_FILE] KEY VALUE [options]")
 }
 
 func TestHelpCommandShowsNestedCommandHelp(t *testing.T) {
@@ -111,11 +111,10 @@ func TestSetHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config set [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config set [CONFIG_FILE] KEY VALUE [options]")
 	assertContains(t, stdout.String(), "CONFIG_FILE\n    Path to the config file")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Edit a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select or create a record by FIELD:VALUE")
-	assertContains(t, stdout.String(), "--array, -a\n    Store VALUE as an array")
 	assertContains(t, stdout.String(), "--string, -s\n    Store VALUE as a string")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
@@ -393,33 +392,17 @@ func TestSetWritesUpdatedTOML(t *testing.T) {
 	}
 }
 
-func TestSetWritesArrayFromMultipleValues(t *testing.T) {
+func TestSetRejectsMultipleValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nports = [1000]\n")
 
 	err := Execute([]string{"set", path, "server.ports", "3000", "3001"}, "1.2.3", &stdout, &stderr)
 
-	if err != nil {
-		t.Fatalf("Execute returned error: %v", err)
+	if err == nil {
+		t.Fatal("expected error")
 	}
-	want := "[server]\nports = [3000, 3001]\n"
-	if got := readFile(t, path); got != want {
-		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
-	}
-}
-
-func TestSetWritesSingleValueArrayWithArrayFlag(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	path := writeTempTOML(t, "[server]\nports = [1000]\n")
-
-	err := Execute([]string{"set", "--array", path, "server.ports", "3000"}, "1.2.3", &stdout, &stderr)
-
-	if err != nil {
-		t.Fatalf("Execute returned error: %v", err)
-	}
-	want := "[server]\nports = [3000]\n"
-	if got := readFile(t, path); got != want {
-		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	if !strings.Contains(err.Error(), "usage: config set [CONFIG_FILE] KEY VALUE [options]") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -508,20 +491,6 @@ func TestSetStringFlagForcesStringValue(t *testing.T) {
 	}
 }
 
-func TestSetStringFlagRejectsMultipleValues(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	path := writeTempTOML(t, "values = []\n")
-
-	err := Execute([]string{"set", "--string", path, "values", "one", "two"}, "1.2.3", &stdout, &stderr)
-
-	if err == nil {
-		t.Fatal("expected error")
-	}
-	if err.Error() != "flag --string cannot be used with multiple values" {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
 func TestSetReadsValueFromStdin(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "message = \"short\"\n")
@@ -535,21 +504,6 @@ func TestSetReadsValueFromStdin(t *testing.T) {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
 	want := "message = \"\"\"hello\nworld\"\"\"\n"
-	if got := readFile(t, path); got != want {
-		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
-	}
-}
-
-func TestSetReadsSingleArrayValueFromStdin(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	path := writeTempTOML(t, "ports = [1000]\n")
-
-	err := ExecuteWithIO([]string{"set", "--array", path, "ports", "-"}, "1.2.3", strings.NewReader("3000"), &stdout, &stderr)
-
-	if err != nil {
-		t.Fatalf("Execute returned error: %v", err)
-	}
-	want := "ports = [3000]\n"
 	if got := readFile(t, path); got != want {
 		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
 	}
@@ -953,7 +907,7 @@ func TestSetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if !strings.Contains(err.Error(), "usage: config set [CONFIG_FILE] KEY VALUE... [options]") {
+	if !strings.Contains(err.Error(), "usage: config set [CONFIG_FILE] KEY VALUE [options]") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

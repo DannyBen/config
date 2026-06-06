@@ -46,6 +46,7 @@ put the `config` binary somewhere on your `PATH`.
 ```bash
 config get path/to/config.toml server.port
 config set path/to/config.toml server.port 3000
+config array add path/to/config.toml sandbox_workspace_write.writable_roots '$HOME/.cache'
 config unset path/to/config.toml server.password
 config list path/to/config.toml server
 ```

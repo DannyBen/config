@@ -22,10 +22,8 @@ type setOptions struct {
 	configFile string
 	key        string
 	value      string
-	values     []string
 	in         string
 	on         string
-	array      bool
 	string     bool
 	dry        bool
 	diff       bool
@@ -131,17 +129,16 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts setOptions
 	cmd := &cobra.Command{
-		Use:   "set [CONFIG_FILE] KEY VALUE... [options]",
+		Use:   "set [CONFIG_FILE] KEY VALUE [options]",
 		Short: "Create or update config values",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 2, -1, "usage: config set [CONFIG_FILE] KEY VALUE... [options]")
+			configFile, rest, err := parseCommandArgs(args, 2, 2, "usage: config set [CONFIG_FILE] KEY VALUE [options]")
 			if err != nil {
 				return err
 			}
 			opts.configFile = configFile
 			opts.key = rest[0]
 			opts.value = rest[1]
-			opts.values = rest[1:]
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -154,12 +151,10 @@ func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 	cmd.SetHelpFunc(helpPrinter("set"))
 	cmd.Flags().StringVar(&opts.in, "in", "", "Edit a record in COLLECTION")
 	cmd.Flags().StringVar(&opts.on, "on", "", "Select or create a record by FIELD:VALUE")
-	cmd.Flags().BoolVarP(&opts.array, "array", "a", false, "Store VALUE as an array")
 	cmd.Flags().BoolVarP(&opts.string, "string", "s", false, "Store VALUE as a string")
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
-	cmd.MarkFlagsMutuallyExclusive("array", "string")
 	cmd.MarkFlagsMutuallyExclusive("dry", "diff")
 	return cmd
 }
@@ -456,49 +451,27 @@ func runSet(opts setOptions, stdin io.Reader, stdout, stderr io.Writer) error {
 		return errors.New("flag --in requires --on")
 	}
 
-	values := opts.values
-	if opts.value == "-" && len(opts.values) == 1 {
+	value := opts.value
+	if opts.value == "-" {
 		content, err := io.ReadAll(stdin)
 		if err != nil {
 			return err
 		}
-		if opts.array {
-			values = []string{string(content)}
-		} else if opts.string {
-			return runEdit("set", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
-				if opts.on != "" {
-					return doc.SetInString(source, opts.in, opts.on, opts.key, string(content))
-				}
-				return doc.SetString(source, opts.key, string(content))
-			})
-		} else {
-			values = []string{string(content)}
-		}
-	}
-	if opts.string && len(values) > 1 {
-		return errors.New("flag --string cannot be used with multiple values")
-	}
-	if opts.array || len(values) > 1 {
-		return runEdit("set", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
-			if opts.on != "" {
-				return doc.SetInArray(source, opts.in, opts.on, opts.key, values)
-			}
-			return doc.SetArray(source, opts.key, values)
-		})
+		value = string(content)
 	}
 	if opts.string {
 		return runEdit("set", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
 			if opts.on != "" {
-				return doc.SetInString(source, opts.in, opts.on, opts.key, values[0])
+				return doc.SetInString(source, opts.in, opts.on, opts.key, value)
 			}
-			return doc.SetString(source, opts.key, values[0])
+			return doc.SetString(source, opts.key, value)
 		})
 	}
 	return runEdit("set", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
 		if opts.on != "" {
-			return doc.SetIn(source, opts.in, opts.on, opts.key, values[0])
+			return doc.SetIn(source, opts.in, opts.on, opts.key, value)
 		}
-		return doc.Set(source, opts.key, values[0])
+		return doc.Set(source, opts.key, value)
 	})
 }
 

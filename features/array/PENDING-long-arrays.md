@@ -1,4 +1,4 @@
-# set/long-arrays
+# array/long-arrays
 
 > PENDING Decide and implement the YAML long-array formatting threshold.
 
@@ -20,7 +20,7 @@ users = ["guest", "admin"]
 ## Commands
 
 ```shell
-config set users guest root auditor manager operator reviewer
+config array set users guest root auditor manager operator reviewer
 ```
 
 ## Result Files

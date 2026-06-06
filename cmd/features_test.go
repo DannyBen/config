@@ -449,7 +449,7 @@ func TestParseFeatureSpec(t *testing.T) {
 		t.Fatalf("refusal stderr by format = %#v", refusalsSpec.commands[2].stderrByFormat)
 	}
 
-	pending := parseFeatureSpec(t, filepath.Join("..", "features", "set", "PENDING-long-arrays.md"))
+	pending := parseFeatureSpec(t, filepath.Join("..", "features", "array", "PENDING-long-arrays.md"))
 	if !pending.pending {
 		t.Fatal("pending marker was not parsed")
 	}
