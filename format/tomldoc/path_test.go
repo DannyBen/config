@@ -75,6 +75,20 @@ func TestSetMissingParentFollowsFirstLevelParentTableStyle(t *testing.T) {
 	}
 }
 
+func TestSetDeepMissingParentDoesNotFollowUnrelatedDottedStyle(t *testing.T) {
+	source := "[tui]\nserver.port = 3000\n"
+
+	got, err := Set(source, "tui.network.env.production.server.port", "3000")
+
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "[tui]\nserver.port = 3000\n\n[tui.network.env.production.server]\nport = 3000\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestSetMissingParentKeepsExistingDottedSiblingStyle(t *testing.T) {
 	source := "server.port = 3000\n\n[client]\nport = 3000\n"
 
