@@ -45,11 +45,11 @@ func setValue(source, path, raw string, mode setMode) (string, error) {
 	if root == nil {
 		return "", fmt.Errorf("%s parent is not set", formatPath(key[:len(key)-1]))
 	}
-	planned, err := planSet(source, root, key, raw, mode)
+	planned, logical, err := planSet(source, root, key, raw, mode)
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, semanticScalar(key, logical))
 }
 
 func setArrayValue(source, path string, values []string) (string, error) {
@@ -71,18 +71,22 @@ func setArrayValue(source, path string, values []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, semanticArray(key, values))
 }
 
 func setValueIn(source, collectionPath, rawSelector, path, raw string, mode setMode) (string, error) {
-	return setIn(source, collectionPath, rawSelector, path, false, func(indent int, existing *yaml.Node) (string, string, error) {
+	return setIn(source, collectionPath, rawSelector, path, false, func(fullPath []string, logical string) semanticSet {
+		return semanticScalar(fullPath, logical)
+	}, func(indent int, existing *yaml.Node) (string, string, error) {
 		value, logical, err := formatSetValue(raw, mode, indent, existing)
 		return value, logical, err
 	})
 }
 
 func setArrayValueIn(source, collectionPath, rawSelector, path string, values []string) (string, error) {
-	return setIn(source, collectionPath, rawSelector, path, true, func(indent int, existing *yaml.Node) (string, string, error) {
+	return setIn(source, collectionPath, rawSelector, path, true, func(fullPath []string, _ string) semanticSet {
+		return semanticArray(fullPath, values)
+	}, func(indent int, existing *yaml.Node) (string, string, error) {
 		value, err := formatArray(values, indent, existing)
 		if err != nil {
 			return "", "", err
@@ -91,7 +95,7 @@ func setArrayValueIn(source, collectionPath, rawSelector, path string, values []
 	})
 }
 
-func setIn(source, collectionPath, rawSelector, path string, allowContainer bool, format func(int, *yaml.Node) (string, string, error)) (string, error) {
+func setIn(source, collectionPath, rawSelector, path string, allowContainer bool, semantic func([]string, string) semanticSet, format func(int, *yaml.Node) (string, string, error)) (string, error) {
 	root, err := parseYAML(source)
 	if err != nil {
 		return "", err
@@ -123,11 +127,11 @@ func setIn(source, collectionPath, rawSelector, path string, allowContainer bool
 		var collectionErr error
 		collectionNode, collectionErr = resolvePath(root, collection, nil)
 		if collectionErr != nil {
-			return insertMissingCollectionRecord(source, root, collection, selectors[0], key, format)
+			return insertMissingCollectionRecord(source, root, collection, selectors[0], key, semantic, format)
 		}
 	}
 	if len(collection) > 0 && collectionNode == nil {
-		return insertMissingCollectionRecord(source, root, collection, selectors[0], key, format)
+		return insertMissingCollectionRecord(source, root, collection, selectors[0], key, semantic, format)
 	}
 	collectionNode, err = resolveAlias(collectionNode, nil)
 	if err != nil {
@@ -140,7 +144,7 @@ func setIn(source, collectionPath, rawSelector, path string, allowContainer bool
 		index, err := selectedRecordIndex(collectionNode, collection, selectors)
 		if err != nil {
 			if strings.Contains(err.Error(), " has no records matching ") {
-				return appendRecord(source, collectionNode, collection, selectors[0], key, format)
+				return appendRecord(source, collectionNode, collection, selectors[0], key, semantic, format)
 			}
 			return "", err
 		}
@@ -148,12 +152,12 @@ func setIn(source, collectionPath, rawSelector, path string, allowContainer bool
 		if err != nil {
 			return "", err
 		}
-		return setRelative(source, root, record, append(appendPath(collection, strconv.Itoa(index)), key...), key, allowContainer, format)
+		return setRelative(source, root, record, append(appendPath(collection, strconv.Itoa(index)), key...), key, allowContainer, semantic, format)
 	}
-	return appendRecord(source, collectionNode, collection, selectors[0], key, format)
+	return appendRecord(source, collectionNode, collection, selectors[0], key, semantic, format)
 }
 
-func setRelative(source string, root, base *yaml.Node, fullPath, relative []string, allowContainer bool, format func(int, *yaml.Node) (string, string, error)) (string, error) {
+func setRelative(source string, root, base *yaml.Node, fullPath, relative []string, allowContainer bool, semantic func([]string, string) semanticSet, format func(int, *yaml.Node) (string, string, error)) (string, error) {
 	if found, ok := findTarget(base, relative); ok {
 		indent := max(found.keyNode.Column+1, 2)
 		value, logical, err := format(indent, found.valueNode)
@@ -164,28 +168,32 @@ func setRelative(source string, root, base *yaml.Node, fullPath, relative []stri
 		if err != nil {
 			return "", err
 		}
-		return applyEdit(source, planned), nil
+		return applyVerifiedSet(source, planned, semantic(fullPath, logical))
 	}
 	planned, err := planInsertMissing(source, root, base, fullPath, relative, format)
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedInsertedPath(source, planned, fullPath)
 }
 
-func planSet(source string, root *yaml.Node, key []string, raw string, mode setMode) (edit, error) {
+func planSet(source string, root *yaml.Node, key []string, raw string, mode setMode) (edit, string, error) {
 	if found, ok := findTarget(root, key); ok {
 		indent := replacementIndent(found)
 		value, logical, err := formatSetValue(raw, mode, indent, found.valueNode)
 		if err != nil {
-			return edit{}, err
+			return edit{}, "", err
 		}
-		return replaceTarget(source, found, value, logical, false)
+		planned, err := replaceTarget(source, found, value, logical, false)
+		return planned, logical, err
 	}
-	return planInsertMissing(source, root, root, key, key, func(indent int, existing *yaml.Node) (string, string, error) {
-		value, logical, err := formatSetValue(raw, mode, indent, existing)
-		return value, logical, err
+	var logical string
+	planned, err := planInsertMissing(source, root, root, key, key, func(indent int, existing *yaml.Node) (string, string, error) {
+		value, formattedLogical, err := formatSetValue(raw, mode, indent, existing)
+		logical = formattedLogical
+		return value, formattedLogical, err
 	})
+	return planned, logical, err
 }
 
 func replacementIndent(found target) int {
@@ -414,51 +422,64 @@ func insertionBase(base *yaml.Node, fullPath, relative []string) (*yaml.Node, []
 	return current, relative[existing:], nil
 }
 
-func insertMissingCollectionRecord(source string, root *yaml.Node, collection []string, selector selector, key []string, format func(int, *yaml.Node) (string, string, error)) (string, error) {
+func insertMissingCollectionRecord(source string, root *yaml.Node, collection []string, selector selector, key []string, semantic func([]string, string) semanticSet, format func(int, *yaml.Node) (string, string, error)) (string, error) {
+	var logical string
 	planned, err := planInsertMissing(source, root, root, collection, collection, func(indent int, existing *yaml.Node) (string, string, error) {
-		record, err := recordText(selector, key, format, indent)
+		record, formattedLogical, err := recordText(selector, key, format, indent)
 		if err != nil {
 			return "", "", err
 		}
+		logical = formattedLogical
 		return "\n" + record, "", nil
 	})
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, recordSemanticChanges(collection, 0, selector, key, logical, semantic)...)
 }
 
-func appendRecord(source string, collectionNode *yaml.Node, collection []string, selector selector, key []string, format func(int, *yaml.Node) (string, string, error)) (string, error) {
+func appendRecord(source string, collectionNode *yaml.Node, collection []string, selector selector, key []string, semantic func([]string, string) semanticSet, format func(int, *yaml.Node) (string, string, error)) (string, error) {
 	insertAt, err := sequenceInsertAt(source, collectionNode)
 	if err != nil {
 		return "", err
 	}
 	itemIndent := max(collectionNode.Column-1, 0)
-	text, err := recordText(selector, key, format, itemIndent)
+	text, logical, err := recordText(selector, key, format, itemIndent)
 	if err != nil {
 		return "", err
 	}
 	planned := edit{start: insertAt, end: insertAt, text: prefixLineEndingAt(source, insertAt) + text}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, recordSemanticChanges(collection, len(collectionNode.Content), selector, key, logical, semantic)...)
 }
 
-func recordText(selector selector, key []string, format func(int, *yaml.Node) (string, string, error), itemIndent int) (string, error) {
+func recordText(selector selector, key []string, format func(int, *yaml.Node) (string, string, error), itemIndent int) (string, string, error) {
 	if len(selector.path) != 1 {
-		return "", fmt.Errorf("--on nested selectors are not supported for creating YAML records")
+		return "", "", fmt.Errorf("--on nested selectors are not supported for creating YAML records")
 	}
 	if len(key) == 0 {
-		return "", fmt.Errorf("empty path")
+		return "", "", fmt.Errorf("empty path")
 	}
-	value, _, err := format(itemIndent+2, nil)
+	value, logical, err := format(itemIndent+2, nil)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	var lines []string
 	lines = append(lines, strings.Repeat(" ", itemIndent)+"- "+selector.path[0]+": "+formatPlainString(selector.compare))
 	if !samePath(selector.path, key) {
 		lines = append(lines, nestedMappingLines(key, value, itemIndent+2)...)
 	}
-	return strings.Join(lines, "\n") + "\n", nil
+	return strings.Join(lines, "\n") + "\n", logical, nil
+}
+
+func recordSemanticChanges(collection []string, index int, selector selector, key []string, logical string, semantic func([]string, string) semanticSet) []semanticSet {
+	recordPath := appendPath(collection, strconv.Itoa(index))
+	selectorPath := append(append([]string{}, recordPath...), selector.path...)
+	changes := []semanticSet{semanticScalar(selectorPath, selector.compare)}
+	if !samePath(selector.path, key) {
+		keyPath := append(append([]string{}, recordPath...), key...)
+		changes = append(changes, semantic(keyPath, logical))
+	}
+	return changes
 }
 
 func findTarget(root *yaml.Node, path []string) (target, bool) {
@@ -690,7 +711,7 @@ func anchoredValueColumn(line string, col int, anchor string) int {
 
 func formatSetValue(raw string, mode setMode, indent int, existing *yaml.Node) (string, string, error) {
 	if strings.Contains(raw, "\n") {
-		return literalBlock(raw, indent), raw, nil
+		return literalBlock(raw, indent), literalBlockLogical(raw), nil
 	}
 	if mode == setModeString {
 		return formatStringValue(raw, existing), raw, nil
@@ -699,10 +720,11 @@ func formatSetValue(raw string, mode setMode, indent int, existing *yaml.Node) (
 		return raw, raw, nil
 	}
 	if strings.HasPrefix(raw, "!") {
-		if err := validateTaggedScalar(raw); err != nil {
+		logical, err := validateTaggedScalar(raw)
+		if err != nil {
 			return "", "", err
 		}
-		return raw, raw, nil
+		return raw, logical, nil
 	}
 	if existing != nil {
 		switch existing.Style {
@@ -716,22 +738,22 @@ func formatSetValue(raw string, mode setMode, indent int, existing *yaml.Node) (
 	return value, raw, nil
 }
 
-func validateTaggedScalar(raw string) error {
+func validateTaggedScalar(raw string) (string, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal([]byte("value: "+raw+"\n"), &doc); err != nil {
-		return fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !: %w", err)
+		return "", fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !: %w", err)
 	}
 	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode || len(doc.Content[0].Content) < 2 {
-		return fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !")
+		return "", fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !")
 	}
 	value := doc.Content[0].Content[1]
 	if value.Kind != yaml.ScalarNode {
-		return fmt.Errorf("YAML tag value must be a scalar; use --string for literal text starting with !")
+		return "", fmt.Errorf("YAML tag value must be a scalar; use --string for literal text starting with !")
 	}
 	if !strings.HasPrefix(value.Tag, "!") {
-		return fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !")
+		return "", fmt.Errorf("invalid YAML tag value; use --string for literal text starting with !")
 	}
-	return nil
+	return scalarValue(value), nil
 }
 
 func formatInferredValue(raw string) string {
@@ -845,6 +867,14 @@ func literalBlock(raw string, indent int) string {
 		lines[i] = prefix + line
 	}
 	return "|-\n" + strings.Join(lines, "\n")
+}
+
+func literalBlockLogical(raw string) string {
+	lines := strings.Split(raw, "\n")
+	for len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	return strings.Join(lines, "\n")
 }
 
 func mappingInsertAt(source string, node *yaml.Node) (int, error) {

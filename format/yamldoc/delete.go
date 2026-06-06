@@ -28,15 +28,20 @@ func deleteValue(source, path string, rawSelectors []string) (string, error) {
 	}
 
 	var planned edit
+	reindexes := false
 	if len(rawSelectors) > 0 {
 		planned, err = planDeleteSelectedRecord(source, root, key, rawSelectors)
+		reindexes = true
 	} else {
 		planned, err = planDeletePath(source, root, key)
+		if _, _, ok := indexedPath(key); ok {
+			reindexes = true
+		}
 	}
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedDelete(source, planned, key, reindexes)
 }
 
 func deleteEmptyValue(source, path string) (string, error) {
@@ -70,7 +75,7 @@ func deleteEmptyValue(source, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedDelete(source, planned, key, false)
 }
 
 func planDeletePath(source string, root *yaml.Node, path []string) (edit, error) {

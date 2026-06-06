@@ -26,3 +26,17 @@ func TestSetReportsInvalidYAMLBeforeUnsupportedError(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestApplyVerifiedSetRejectsSemanticMismatch(t *testing.T) {
+	source := "server:\n  host: localhost\n"
+	planned := edit{start: len(source), end: len(source), text: "  port: 3000\n"}
+
+	_, err := applyVerifiedSet(source, planned, semanticScalar([]string{"server", "mode"}, "3000"))
+
+	if err == nil {
+		t.Fatal("expected semantic verification error")
+	}
+	if err.Error() != "internal YAML patch verification failed" {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
