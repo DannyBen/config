@@ -1616,10 +1616,14 @@ func applyVerifiedSets(source string, planned edit, changes []semanticSet) (stri
 
 func applyVerifiedUnset(source string, planned edit, key parser.Key) (string, error) {
 	updated := applyEdit(source, planned)
-	return verifySemanticPatch(source, updated, func(expected map[string]string) error {
+	updated, err := verifySemanticPatch(source, updated, func(expected map[string]string) error {
 		semanticDeletePrefix(expected, key)
 		return nil
 	})
+	if err != nil {
+		return "", err
+	}
+	return pruneEmptyParentTables(updated, key[:len(key)-1])
 }
 
 func applyVerifiedDelete(source string, planned []edit, key parser.Key, selectors []string) (string, error) {
@@ -1687,6 +1691,69 @@ func semanticDeletePrefix(values map[string]string, key parser.Key) {
 			delete(values, item)
 		}
 	}
+}
+
+func pruneEmptyParentTables(source string, parent parser.Key) (string, error) {
+	current := source
+	for len(parent) > 0 {
+		pruned, ok, err := pruneEmptyTable(current, parent)
+		if err != nil {
+			return "", err
+		}
+		if !ok {
+			parent = parent[:len(parent)-1]
+			continue
+		}
+		next, err := verifySemanticPatch(current, pruned, func(map[string]string) error {
+			return nil
+		})
+		if err != nil {
+			return "", err
+		}
+		current = next
+		parent = parent[:len(parent)-1]
+	}
+	return current, nil
+}
+
+func pruneEmptyTable(source string, key parser.Key) (string, bool, error) {
+	assignments, sections, err := scan(source)
+	if err != nil {
+		return "", false, err
+	}
+	if !explicitEmptyTable(assignments, sections, key) {
+		return source, false, nil
+	}
+	start, end, ok := tableDeleteRange(source, key)
+	if !ok {
+		return "", false, fmt.Errorf("%s cannot be safely deleted", key.String())
+	}
+	return applyEdits(source, []edit{{start: start, end: end, text: ""}}), true, nil
+}
+
+func explicitEmptyTable(assignments []assignment, sections []section, key parser.Key) bool {
+	found := false
+	for _, sec := range sections {
+		if sec.key.Equals(key) {
+			if sec.inline {
+				return false
+			}
+			found = true
+			continue
+		}
+		if hasKeyPrefix(sec.key, key) {
+			return false
+		}
+	}
+	if !found {
+		return false
+	}
+	for _, item := range assignments {
+		if item.key.Equals(key) || hasKeyPrefix(item.key, key) {
+			return false
+		}
+	}
+	return true
 }
 
 func indexedRecordDelete(key parser.Key) bool {

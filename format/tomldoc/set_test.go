@@ -127,6 +127,20 @@ func TestUnsetExistingScalar(t *testing.T) {
 	}
 }
 
+func TestUnsetPrunesEmptyTable(t *testing.T) {
+	source := "title = \"demo\"\n\n[server]\nport = 3000\n"
+
+	got, err := Unset(source, "server.port")
+
+	if err != nil {
+		t.Fatalf("Unset returned error: %v", err)
+	}
+	want := "title = \"demo\"\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestUnsetAfterSetInAnotherTable(t *testing.T) {
 	source := "title = \"demo app\"\n\n[server]\nbind = \"0.0.0.0\"\n\n[database]\nhost = \"localhost\"\nport = 5432 # default postgres port\npassword = \"secret\"\n"
 
