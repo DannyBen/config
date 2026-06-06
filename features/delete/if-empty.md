@@ -1,6 +1,7 @@
 # delete/if-empty
 
-Delete can remove a container only when it has no values.
+Delete can remove a container only when it has no values. Missing containers are
+treated as an already-clean state.
 
 ## Source Files
 
@@ -25,9 +26,11 @@ insert_newline = "enter"
 ```shell
 # should not delete
 config delete tui.keymap.composer --if-empty
+config delete tui.keymap.missing --if-empty
 
 # should delete
 config unset tui.keymap.editor.insert_newline --if enter
+config delete tui.keymap.editor --if-empty
 config delete tui.keymap.editor --if-empty
 ```
 

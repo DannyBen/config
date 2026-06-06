@@ -86,6 +86,30 @@ func TestDeleteDashOnlyRecord(t *testing.T) {
 	}
 }
 
+func TestDeleteIfEmptyIgnoresMissingPath(t *testing.T) {
+	source := "server:\n  port: 3000\n"
+
+	got, err := DeleteIfEmpty(source, "server.missing")
+
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+	if got != source {
+		t.Fatalf("source changed\nwant:\n%s\ngot:\n%s", source, got)
+	}
+}
+
+func TestDeleteIfEmptyIgnoresMissingPathInEmptyDocument(t *testing.T) {
+	got, err := DeleteIfEmpty("", "server")
+
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+	if got != "" {
+		t.Fatalf("source changed: %q", got)
+	}
+}
+
 func TestDeleteRefusesScalarValue(t *testing.T) {
 	_, err := Delete("server:\n  port: 3000\n", "server.port", nil)
 

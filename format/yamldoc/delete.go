@@ -52,12 +52,12 @@ func deleteEmptyValue(source, path string) (string, error) {
 		return "", fmt.Errorf("empty path")
 	}
 	if root == nil {
-		return "", fmt.Errorf("%s is not set", formatPath(key))
+		return source, nil
 	}
 
 	found, ok := findTarget(root, key)
 	if !ok {
-		return "", fmt.Errorf("%s is not set", formatPath(key))
+		return source, nil
 	}
 	found.path = key
 	if err := ensureEmptyDeletableContainer(source, found, root); err != nil {

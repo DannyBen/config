@@ -256,12 +256,19 @@ func Delete(source, path string, selectors []string) (string, error) {
 func DeleteIfEmpty(source, path string) (string, error) {
 	entries, err := List(source, path)
 	if err != nil {
+		if isNotSetError(err) {
+			return source, nil
+		}
 		return "", err
 	}
 	if len(entries) > 0 {
 		return source, nil
 	}
 	return Delete(source, path, nil)
+}
+
+func isNotSetError(err error) bool {
+	return strings.HasSuffix(err.Error(), " is not set")
 }
 
 func Get(source, path string) (string, error) {

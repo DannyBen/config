@@ -1,6 +1,7 @@
 # unset/if-exists
 
 Unset can ignore missing keys when the caller is cleaning up optional edits.
+Missing keys are treated as an already-clean state.
 
 ## Source Files
 

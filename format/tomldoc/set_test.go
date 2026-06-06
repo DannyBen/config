@@ -220,6 +220,19 @@ func TestDeleteTableBeforeAnotherTable(t *testing.T) {
 	}
 }
 
+func TestDeleteIfEmptyIgnoresMissingPath(t *testing.T) {
+	source := "title = \"demo app\"\n\n[server]\nport = 3000\n"
+
+	got, err := DeleteIfEmpty(source, "server.missing")
+
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+	if got != source {
+		t.Fatalf("source changed\nwant:\n%s\ngot:\n%s", source, got)
+	}
+}
+
 func TestDeleteArrayRecordByIndex(t *testing.T) {
 	source := "title = \"demo app\"\n\n[[servers]]\nname = \"api\"\nport = 3000\n\n[[servers]]\nname = \"worker\"\nport = 3001\n\n[style]\ncolor = \"blue\"\n"
 
