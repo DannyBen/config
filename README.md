@@ -1,5 +1,7 @@
 # Config
 
+![repocard](https://repocard.dannyben.com/svg/config.svg)
+
 `config` is a CLI for reading and editing configuration files with a
 simple `git config`-like interface.
 
