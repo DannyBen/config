@@ -61,6 +61,15 @@ type deleteOptions struct {
 	color      bool
 }
 
+type arrayOptions struct {
+	configFile string
+	key        string
+	values     []string
+	dry        bool
+	diff       bool
+	color      bool
+}
+
 type listOptions struct {
 	configFile string
 	key        string
@@ -115,7 +124,7 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 	root.SetHelpFunc(helpPrinter("root"))
 	root.SetVersionTemplate("{{.Version}}\n")
 
-	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newListCommand(stdout), newHelpCommand(stdout))
+	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newHelpCommand(stdout))
 	return root
 }
 
@@ -267,6 +276,61 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 	return cmd
 }
 
+func newArrayCommand(stdout, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "array COMMAND [options]",
+		Short: "Manipulate scalar arrays",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return usageError{"usage: config array COMMAND [options]"}
+			}
+			return nil
+		},
+	}
+	cmd.SetHelpFunc(helpPrinter("array"))
+	cmd.AddCommand(
+		newArrayEditCommand("set", "Replace a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
+			return doc.SetArray(source, opts.key, opts.values)
+		}),
+		newArrayEditCommand("add", "Add values to a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
+			return doc.ArrayAdd(source, opts.key, opts.values)
+		}),
+		newArrayEditCommand("del", "Remove values from a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
+			return doc.ArrayDel(source, opts.key, opts.values)
+		}),
+	)
+	return cmd
+}
+
+func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func(format.Document, string, arrayOptions) (string, error)) *cobra.Command {
+	var opts arrayOptions
+	cmd := &cobra.Command{
+		Use:   name + " [CONFIG_FILE] KEY VALUE... [options]",
+		Short: short,
+		Args: func(cmd *cobra.Command, args []string) error {
+			configFile, rest, err := parseCommandArgs(args, 2, -1, "usage: config array "+name+" [CONFIG_FILE] KEY VALUE... [options]")
+			if err != nil {
+				return err
+			}
+			opts.configFile = configFile
+			opts.key = rest[0]
+			opts.values = rest[1:]
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := validatePreviewOptions(opts.dry, opts.diff, opts.color); err != nil {
+				return err
+			}
+			return runArrayEdit(name, opts, stdout, stderr, edit)
+		},
+	}
+	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
+	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
+	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
+	cmd.MarkFlagsMutuallyExclusive("dry", "diff")
+	return cmd
+}
+
 func newHelpCommand(stdout io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "help [COMMAND|TOPIC]",
@@ -313,7 +377,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "list"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "list"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -337,7 +401,7 @@ func helpIndex() string {
 
 func commandHelpTopic(name string) (string, bool) {
 	switch name {
-	case "root", "set", "get", "unset", "delete", "list":
+	case "root", "set", "get", "unset", "delete", "array", "list":
 		return name, true
 	default:
 		return "", false
@@ -463,6 +527,12 @@ func runUnset(opts unsetOptions, stdout, stderr io.Writer) error {
 			return doc.UnsetIn(source, opts.in, opts.on, opts.key)
 		}
 		return doc.Unset(source, opts.key)
+	})
+}
+
+func runArrayEdit(command string, opts arrayOptions, stdout, stderr io.Writer, edit func(format.Document, string, arrayOptions) (string, error)) error {
+	return runEdit("array "+command, opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
+		return edit(doc, source, opts)
 	})
 }
 

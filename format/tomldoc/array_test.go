@@ -82,6 +82,57 @@ func TestSetArrayValueInfersElementTypes(t *testing.T) {
 	}
 }
 
+func TestArrayAddAppendsMissingValuesAndCreatesArray(t *testing.T) {
+	source := "roots = [\"$HOME/.cache\"]\n"
+
+	got, err := ArrayAdd(source, "roots", []string{"/tmp", "$HOME/.cache"})
+
+	if err != nil {
+		t.Fatalf("ArrayAdd returned error: %v", err)
+	}
+	got, err = ArrayAdd(got, "extra", []string{"/var/tmp"})
+	if err != nil {
+		t.Fatalf("ArrayAdd returned error: %v", err)
+	}
+	want := "roots = [\"$HOME/.cache\", \"/tmp\"]\nextra = [\"/var/tmp\"]\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestArrayDelRemovesValuesAndDeletesEmptyArray(t *testing.T) {
+	source := "roots = [\"$HOME/.cache\", \"/tmp\"]\nextra = [\"/var/tmp\"]\n"
+
+	got, err := ArrayDel(source, "roots", []string{"/tmp", "/missing"})
+
+	if err != nil {
+		t.Fatalf("ArrayDel returned error: %v", err)
+	}
+	got, err = ArrayDel(got, "extra", []string{"/var/tmp"})
+	if err != nil {
+		t.Fatalf("ArrayDel returned error: %v", err)
+	}
+	got, err = ArrayDel(got, "absent", []string{"/tmp"})
+	if err != nil {
+		t.Fatalf("ArrayDel returned error: %v", err)
+	}
+	want := "roots = [\"$HOME/.cache\"]\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestArrayAddRefusesNonArrayValue(t *testing.T) {
+	_, err := ArrayAdd("roots = \"/tmp\"\n", "roots", []string{"/var/tmp"})
+
+	if err == nil {
+		t.Fatal("expected non-array refusal")
+	}
+	if err.Error() != "roots is not an array" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestSetReplacesArrayItemByIndex(t *testing.T) {
 	source := "methods = [\"GET\", \"SET\"]\n"
 

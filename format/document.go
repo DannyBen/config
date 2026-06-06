@@ -12,6 +12,8 @@ type Entry struct {
 }
 
 type Document interface {
+	ArrayAdd(source, key string, values []string) (string, error)
+	ArrayDel(source, key string, values []string) (string, error)
 	Delete(source, key string, selectors []string) (string, error)
 	Get(source, key string) (string, error)
 	GetIn(source, collection string, selectors []string, key string) (string, error)

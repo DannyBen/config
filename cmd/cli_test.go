@@ -39,7 +39,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  list")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list")
 	assertContains(t, stdout.String(), "Other topics:\n  environment")
 	assertContains(t, stdout.String(), "Shortcut:\n  config COMMAND --help|-h")
 }

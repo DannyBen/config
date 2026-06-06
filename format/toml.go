@@ -4,6 +4,14 @@ import "github.com/dannyben/config/format/tomldoc"
 
 type tomlDocument struct{}
 
+func (tomlDocument) ArrayAdd(source, key string, values []string) (string, error) {
+	return tomldoc.ArrayAdd(source, key, values)
+}
+
+func (tomlDocument) ArrayDel(source, key string, values []string) (string, error) {
+	return tomldoc.ArrayDel(source, key, values)
+}
+
 func (tomlDocument) Delete(source, key string, selectors []string) (string, error) {
 	return tomldoc.Delete(source, key, selectors)
 }

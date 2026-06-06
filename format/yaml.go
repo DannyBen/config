@@ -4,6 +4,14 @@ import "github.com/dannyben/config/format/yamldoc"
 
 type yamlDocument struct{}
 
+func (yamlDocument) ArrayAdd(source, key string, values []string) (string, error) {
+	return yamldoc.ArrayAdd(source, key, values)
+}
+
+func (yamlDocument) ArrayDel(source, key string, values []string) (string, error) {
+	return yamldoc.ArrayDel(source, key, values)
+}
+
 func (yamlDocument) Delete(source, key string, selectors []string) (string, error) {
 	return yamldoc.Delete(source, key, selectors)
 }
