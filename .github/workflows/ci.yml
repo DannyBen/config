@@ -9,7 +9,16 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: config-smoke
+          - os: macos-latest
+            binary: config-smoke
     env:
       GOCACHE: ${{ github.workspace }}/.cache/go-build
     steps:
@@ -23,3 +32,9 @@ jobs:
 
       - name: Run tests
         run: go test ./...
+
+      - name: Build binary
+        run: go build -o ${{ matrix.binary }} .
+
+      - name: Smoke test binary
+        run: ./${{ matrix.binary }} --version
