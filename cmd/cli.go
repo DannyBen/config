@@ -618,22 +618,8 @@ func runEdit(command, configFile string, dry, diff, color bool, stdout, stderr i
 	log.Debug("planned edit", "before", len(source), "after", len(updated))
 	unchanged := updated == string(source)
 
-	if diff {
-		if unchanged {
-			log.Debug("no changes")
-			return nil
-		}
-		log.Debug("printing diff")
-		diff := unifiedDiff(configFile, string(source), updated)
-		if color {
-			diff = colorizeDiff(diff)
-		}
-		fmt.Fprint(stdout, diff)
-		return nil
-	}
-	if dry {
-		log.Debug("printing dry output")
-		fmt.Fprint(stdout, updated)
+	handled := printEditPreview(configFile, string(source), updated, dry, diff, color, stdout, log)
+	if handled {
 		return nil
 	}
 	if unchanged {
@@ -641,6 +627,40 @@ func runEdit(command, configFile string, dry, diff, color bool, stdout, stderr i
 		return nil
 	}
 
+	if err := writeConfigFile(configFile, updated); err != nil {
+		return err
+	}
+	log.Debug("wrote config", "path", configFile, "bytes", len(updated))
+	return nil
+}
+
+type editLogger interface {
+	Debug(message string, keyvals ...any)
+}
+
+func printEditPreview(configFile, source, updated string, dry, diff, color bool, stdout io.Writer, log editLogger) bool {
+	if diff {
+		if updated == source {
+			log.Debug("no changes")
+			return true
+		}
+		log.Debug("printing diff")
+		output := unifiedDiff(configFile, source, updated)
+		if color {
+			output = colorizeDiff(output)
+		}
+		fmt.Fprint(stdout, output)
+		return true
+	}
+	if dry {
+		log.Debug("printing dry output")
+		fmt.Fprint(stdout, updated)
+		return true
+	}
+	return false
+}
+
+func writeConfigFile(configFile, updated string) error {
 	mode := os.FileMode(0644)
 	if info, err := os.Stat(configFile); err == nil {
 		mode = info.Mode()
@@ -648,7 +668,6 @@ func runEdit(command, configFile string, dry, diff, color bool, stdout, stderr i
 	if err := os.WriteFile(configFile, []byte(updated), mode); err != nil {
 		return err
 	}
-	log.Debug("wrote config", "path", configFile, "bytes", len(updated))
 	return nil
 }
 
