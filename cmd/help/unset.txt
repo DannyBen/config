@@ -21,6 +21,9 @@ Options:
   --if VALUE
     Only unset when the current value matches VALUE
 
+  --if-exists
+    Do nothing when KEY is not set
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -34,4 +37,5 @@ Examples:
   config unset path/to/config.toml server.port
   config unset server.port
   config unset server.port --if 3000
+  config unset server.port --if-exists
   config unset path/to/config.toml port --in servers --on name:api

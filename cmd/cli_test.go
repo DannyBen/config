@@ -143,6 +143,7 @@ func TestUnsetHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Remove a field from a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
 	assertContains(t, stdout.String(), "--if VALUE\n    Only unset when the current value matches VALUE")
+	assertContains(t, stdout.String(), "--if-exists\n    Do nothing when KEY is not set")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")
@@ -676,6 +677,27 @@ func TestUnsetIfValueOnlyUnsetsMatchingScalar(t *testing.T) {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
 	if got := readFile(t, path); got != "queue = \"alt-w\"\n" {
+		t.Fatalf("file mismatch: %q", got)
+	}
+}
+
+func TestUnsetIfExistsIgnoresMissingKey(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "submit = \"tab\"\nqueue = \"alt-q\"\n")
+
+	err := Execute([]string{"unset", path, "submit", "--if-exists"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	err = Execute([]string{"unset", path, "missing", "--if-exists"}, "1.2.3", &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if got := readFile(t, path); got != "queue = \"alt-q\"\n" {
 		t.Fatalf("file mismatch: %q", got)
 	}
 }

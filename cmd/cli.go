@@ -46,6 +46,7 @@ type unsetOptions struct {
 	on         []string
 	ifValue    string
 	ifSet      bool
+	ifExists   bool
 	dry        bool
 	diff       bool
 	color      bool
@@ -204,6 +205,7 @@ func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 	cmd.Flags().StringVar(&opts.in, "in", "", "Remove a field from a record in COLLECTION")
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	cmd.Flags().StringVar(&opts.ifValue, "if", "", "Only unset when the current value matches VALUE")
+	cmd.Flags().BoolVar(&opts.ifExists, "if-exists", false, "Do nothing when KEY is not set")
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
@@ -439,7 +441,7 @@ func runUnset(opts unsetOptions, stdout, stderr io.Writer) error {
 	}
 
 	return runEdit("unset", opts.configFile, opts.dry, opts.diff, opts.color, stdout, stderr, func(doc format.Document, source string) (string, error) {
-		if opts.ifSet {
+		if opts.ifSet || opts.ifExists {
 			var value string
 			var err error
 			if opts.in != "" {
@@ -453,7 +455,7 @@ func runUnset(opts unsetOptions, stdout, stderr io.Writer) error {
 				}
 				return "", err
 			}
-			if value != opts.ifValue {
+			if opts.ifSet && value != opts.ifValue {
 				return source, nil
 			}
 		}
