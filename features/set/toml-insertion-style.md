@@ -19,6 +19,9 @@ port = 3000
 
 [app]
 prod.port = 80
+
+[tui]
+server.port = 3000
 ```
 
 ## Commands
@@ -27,6 +30,7 @@ prod.port = 80
 config set server.host localhost
 config set env.debug.port 8080
 config set app.dev.port 3001
+config set tui.network.env.production.server.port 3000
 config set service.api.host localhost
 config set cache.redis.port 6379
 ```
@@ -52,8 +56,14 @@ port = 3000
 prod.port = 80
 dev.port = 3001
 
+[tui]
+server.port = 3000
+
 [env.debug]
 port = 8080
+
+[tui.network.env.production.server]
+port = 3000
 
 [cache.redis]
 port = 6379

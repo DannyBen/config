@@ -693,9 +693,13 @@ func planMissingNestedSet(source string, assignments []assignment, sections []se
 		text := parser.Key{key[len(key)-1]}.String() + " = " + value + lineEnding(source)
 		return edit{start: sec.insertAt, end: sec.insertAt, text: prefixLineEndingAt(source, sec.insertAt) + text}, nil
 	}
-	if insertAt, scope, ok := dottedSiblingInsertAt(assignments, parent); ok {
+	if insertAt, scope, ok := dottedSiblingInsertAt(assignments, key); ok {
 		relative := relativeKey(key, scope)
 		text := relative.String() + " = " + value + lineEnding(source)
+		return edit{start: insertAt, end: insertAt, text: prefixLineEndingAt(source, insertAt) + text}, nil
+	}
+	if insertAt, ok := dottedParentInsertAt(assignments, parent); ok {
+		text := key.String() + " = " + value + lineEnding(source)
 		return edit{start: insertAt, end: insertAt, text: prefixLineEndingAt(source, insertAt) + text}, nil
 	}
 	if hasSiblingSection(sections, parent) {
@@ -703,6 +707,9 @@ func planMissingNestedSet(source string, assignments []assignment, sections []se
 	}
 	if sec, prefix, ok := longestSectionPrefix(sections, key); ok {
 		child := key[len(prefix):]
+		if len(child) > 2 && !sec.inline && !hasAssignmentWithPrefix(assignments, parent) {
+			return appendTable(source, parent, key[len(key)-1], value), nil
+		}
 		if sec.inline {
 			return insertInlineTableChild(source, sec, child.String(), value), nil
 		}
@@ -769,19 +776,44 @@ func hasSiblingSection(sections []section, parent parser.Key) bool {
 	return false
 }
 
-func dottedSiblingInsertAt(assignments []assignment, parent parser.Key) (int, parser.Key, bool) {
+func dottedSiblingInsertAt(assignments []assignment, key parser.Key) (int, parser.Key, bool) {
 	insertAt := -1
 	var scope parser.Key
 	for _, item := range assignments {
-		if item.key.Equals(parent) {
+		if item.key.Equals(key) {
 			continue
 		}
-		if hasKeyPrefix(item.key, parent) && item.lineSpan.End > insertAt {
+		if !dottedSiblingStyleApplies(item, key) {
+			continue
+		}
+		if item.lineSpan.End > insertAt {
 			insertAt = item.lineSpan.End
 			scope = item.scope
 		}
 	}
 	return insertAt, scope, insertAt >= 0
+}
+
+func dottedSiblingStyleApplies(item assignment, key parser.Key) bool {
+	relative := relativeKey(key, item.scope)
+	if len(relative) != 2 {
+		return false
+	}
+	if len(item.scope) > 0 && !item.scope.IsPrefixOf(item.key) {
+		return false
+	}
+	itemRelative := relativeKey(item.key, item.scope)
+	return len(itemRelative) > 1 && itemRelative[0] == relative[0]
+}
+
+func dottedParentInsertAt(assignments []assignment, parent parser.Key) (int, bool) {
+	insertAt := -1
+	for _, item := range assignments {
+		if hasKeyPrefix(item.key, parent) && item.lineSpan.End > insertAt {
+			insertAt = item.lineSpan.End
+		}
+	}
+	return insertAt, insertAt >= 0
 }
 
 func relativeKey(key, scope parser.Key) parser.Key {
