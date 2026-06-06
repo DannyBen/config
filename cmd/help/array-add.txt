@@ -1,0 +1,32 @@
+Add values to a scalar array
+
+Usage:
+  config array add [CONFIG_FILE] KEY VALUE... [options]
+  config array add --help | -h
+
+Behavior:
+  Creates the array when KEY is not set.
+  Ignores values that are already present.
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Dot notation string describing the intended array key
+
+  VALUE...
+    Scalar values to add to the array
+
+Options:
+  --dry, -n
+    Print the updated config without modifying the file
+
+  --diff, -d
+    Print a unified diff without modifying the file
+
+  --color, -c
+    Colorize diff output
+
+Examples:
+  config array add roots /var/tmp "$HOME/.cache"

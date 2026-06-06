@@ -9,6 +9,7 @@ Commands:
   get
   unset
   delete
+  array
   list
 
 Topics:
@@ -16,4 +17,5 @@ Topics:
 
 Examples:
   config help set
+  config help array add
   config help environment

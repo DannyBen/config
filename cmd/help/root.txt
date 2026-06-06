@@ -9,5 +9,6 @@ Commands:
   get     Show a config value
   unset   Delete a config value
   delete  Delete a config container
+  array   Manipulate scalar arrays
   list    Show config values
   help    Show command help or topic help

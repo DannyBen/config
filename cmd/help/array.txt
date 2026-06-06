@@ -8,33 +8,3 @@ Commands:
   set   Replace a scalar array
   add   Add values to a scalar array
   del   Remove values from a scalar array
-
-Usage:
-  config array set [CONFIG_FILE] KEY VALUE... [options]
-  config array add [CONFIG_FILE] KEY VALUE... [options]
-  config array del [CONFIG_FILE] KEY VALUE... [options]
-
-Parameters:
-  CONFIG_FILE
-    Path to the config file
-
-  KEY
-    Dot notation string describing the intended array key
-
-  VALUE...
-    Scalar values to store, add, or remove
-
-Options:
-  --dry, -n
-    Print the updated config without modifying the file
-
-  --diff, -d
-    Print a unified diff without modifying the file
-
-  --color, -c
-    Colorize diff output
-
-Examples:
-  config array set roots "$HOME/.cache" /tmp
-  config array add roots /var/tmp
-  config array del roots /tmp

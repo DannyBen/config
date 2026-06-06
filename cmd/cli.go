@@ -324,6 +324,7 @@ func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func
 			return runArrayEdit(name, opts, stdout, stderr, edit)
 		},
 	}
+	cmd.SetHelpFunc(helpPrinter("array-" + name))
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
@@ -336,7 +337,7 @@ func newHelpCommand(stdout io.Writer) *cobra.Command {
 		Use:   "help [COMMAND|TOPIC]",
 		Short: "Show command help or topic help",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) > 1 {
+			if len(args) > 2 {
 				return usageError{"usage: config help [COMMAND|TOPIC]"}
 			}
 			return nil
@@ -347,7 +348,7 @@ func newHelpCommand(stdout io.Writer) *cobra.Command {
 				return nil
 			}
 
-			name := args[0]
+			name := strings.Join(args, " ")
 			if commandHelp, ok := commandHelpTopic(name); ok {
 				text, err := helpText(commandHelp)
 				if err != nil {
@@ -395,7 +396,6 @@ func helpIndex() string {
 		}
 	}
 
-	lines = append(lines, "", "Shortcut:", "  config COMMAND --help|-h")
 	return strings.Join(lines, "\n")
 }
 
@@ -403,6 +403,12 @@ func commandHelpTopic(name string) (string, bool) {
 	switch name {
 	case "root", "set", "get", "unset", "delete", "array", "list":
 		return name, true
+	case "array set":
+		return "array-set", true
+	case "array add":
+		return "array-add", true
+	case "array del":
+		return "array-del", true
 	default:
 		return "", false
 	}

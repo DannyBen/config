@@ -41,7 +41,9 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
 	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list")
 	assertContains(t, stdout.String(), "Other topics:\n  environment")
-	assertContains(t, stdout.String(), "Shortcut:\n  config COMMAND --help|-h")
+	if strings.Contains(stdout.String(), "Shortcut:") {
+		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
+	}
 }
 
 func TestHelpCommandShowsCommandHelp(t *testing.T) {
@@ -54,6 +56,19 @@ func TestHelpCommandShowsCommandHelp(t *testing.T) {
 	}
 	assertContains(t, stdout.String(), "Create or update config values")
 	assertContains(t, stdout.String(), "config set [CONFIG_FILE] KEY VALUE... [options]")
+}
+
+func TestHelpCommandShowsNestedCommandHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"help", "array", "add"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	assertContains(t, stdout.String(), "Add values to a scalar array")
+	assertContains(t, stdout.String(), "config array add [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "Creates the array when KEY is not set.")
 }
 
 func TestHelpCommandShowsTopicHelp(t *testing.T) {
@@ -147,6 +162,43 @@ func TestUnsetHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")
+}
+
+func TestArrayHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"array", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Usage:\n  config array COMMAND [options]\n  config array --help | -h")
+	assertContains(t, stdout.String(), "Commands:\n  set   Replace a scalar array\n  add   Add values to a scalar array\n  del   Remove values from a scalar array")
+	if strings.Contains(stdout.String(), "Examples:") {
+		t.Fatalf("array group help should not include examples:\n%s", stdout.String())
+	}
+	if strings.Contains(stdout.String(), "config array add [CONFIG_FILE] KEY VALUE") {
+		t.Fatalf("array group help should not include subcommand details:\n%s", stdout.String())
+	}
+}
+
+func TestArraySubcommandHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"array", "add", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Usage:\n  config array add [CONFIG_FILE] KEY VALUE... [options]\n  config array add --help | -h")
+	assertContains(t, stdout.String(), "Creates the array when KEY is not set.")
+	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 }
 
 func TestGetHelp(t *testing.T) {
