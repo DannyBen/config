@@ -85,7 +85,7 @@ func ArrayDel(source, path string, values []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return applyEdit(source, planned), nil
+		return applyVerifiedUnset(source, planned, key)
 	}
 	return replaceArray(source, key, raws)
 }
@@ -188,5 +188,5 @@ func replaceArray(source string, key parser.Key, raws []string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, key, formatted)
 }

@@ -89,6 +89,26 @@ func TestSetMissingParentKeepsExistingDottedSiblingStyle(t *testing.T) {
 	}
 }
 
+func TestSetMissingValueInExistingEmptyTable(t *testing.T) {
+	source := "title = \"demo\"\n\n[tui.keymap]\n\n[tui]\ntheme = \"light\"\n"
+
+	got, err := Set(source, "tui.keymap.composer.submit", "tab")
+	if err == nil {
+		got, err = Set(got, "tui.keymap.composer.queue", "alt-q")
+	}
+	if err == nil {
+		got, err = Set(got, "tui.keymap.editor.insert_newline", "enter")
+	}
+
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "title = \"demo\"\n\n[tui.keymap]\ncomposer.submit = \"tab\"\ncomposer.queue = \"alt-q\"\neditor.insert_newline = \"enter\"\n\n[tui]\ntheme = \"light\"\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestDoubleDotEscapesLiteralDotInPath(t *testing.T) {
 	source := "[server]\n\"public.port\" = 3000\n"
 

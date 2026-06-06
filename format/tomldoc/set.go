@@ -22,6 +22,7 @@ type token struct {
 
 type assignment struct {
 	key       parser.Key
+	scope     parser.Key
 	lineSpan  scanner.Span
 	valueSpan scanner.Span
 	internal  bool
@@ -38,6 +39,11 @@ type edit struct {
 	start int
 	end   int
 	text  string
+}
+
+type semanticSet struct {
+	key   parser.Key
+	value string
 }
 
 type Entry struct {
@@ -106,7 +112,7 @@ func Set(source, path, rawValue string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, key, value)
 }
 
 func SetString(source, path, value string) (string, error) {
@@ -125,7 +131,7 @@ func SetString(source, path, value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, key, formatted)
 }
 
 func SetArray(source, path string, values []string) (string, error) {
@@ -144,7 +150,7 @@ func SetArray(source, path string, values []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSet(source, planned, key, formatted)
 }
 
 func SetIn(source, collectionPath, selector, path, rawValue string) (string, error) {
@@ -155,11 +161,11 @@ func SetIn(source, collectionPath, selector, path, rawValue string) (string, err
 	if err != nil {
 		return "", err
 	}
-	planned, err := planSetIn(source, collection, onKey, onValue, onCompare, key, value)
+	planned, changes, err := planSetIn(source, collection, onKey, onValue, onCompare, key, value)
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSets(source, planned, changes)
 }
 
 func SetInString(source, collectionPath, selector, path, value string) (string, error) {
@@ -170,11 +176,11 @@ func SetInString(source, collectionPath, selector, path, value string) (string, 
 	if err != nil {
 		return "", err
 	}
-	planned, err := planSetIn(source, collection, onKey, onValue, onCompare, key, formatted)
+	planned, changes, err := planSetIn(source, collection, onKey, onValue, onCompare, key, formatted)
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSets(source, planned, changes)
 }
 
 func SetInArray(source, collectionPath, selector, path string, values []string) (string, error) {
@@ -187,11 +193,11 @@ func SetInArray(source, collectionPath, selector, path string, values []string) 
 	if err != nil {
 		return "", err
 	}
-	planned, err := planSetIn(source, collection, onKey, onValue, onCompare, key, value)
+	planned, changes, err := planSetIn(source, collection, onKey, onValue, onCompare, key, value)
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedSets(source, planned, changes)
 }
 
 func Unset(source, path string) (string, error) {
@@ -206,7 +212,7 @@ func Unset(source, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedUnset(source, planned, key)
 }
 
 func UnsetIn(source, collectionPath string, selectors []string, path string) (string, error) {
@@ -235,7 +241,7 @@ func UnsetIn(source, collectionPath string, selectors []string, path string) (st
 	if err != nil {
 		return "", err
 	}
-	return applyEdit(source, planned), nil
+	return applyVerifiedUnset(source, planned, fullKey)
 }
 
 func Delete(source, path string, selectors []string) (string, error) {
@@ -250,7 +256,7 @@ func Delete(source, path string, selectors []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return applyEdits(source, planned), nil
+	return applyVerifiedDelete(source, planned, key, selectors)
 }
 
 func DeleteIfEmpty(source, path string) (string, error) {
@@ -552,10 +558,10 @@ func parseSetIn(collectionPath, selector, path, rawValue string, format func(str
 	return collection, onKey, onValue, onCompare, key, value, nil
 }
 
-func planSetIn(source string, collection, onKey parser.Key, onValue, onCompare string, key parser.Key, value string) (edit, error) {
+func planSetIn(source string, collection, onKey parser.Key, onValue, onCompare string, key parser.Key, value string) (edit, []semanticSet, error) {
 	assignments, sections, err := scan(source)
 	if err != nil {
-		return edit{}, err
+		return edit{}, nil, err
 	}
 
 	var matches []int
@@ -571,7 +577,7 @@ func planSetIn(source string, collection, onKey parser.Key, onValue, onCompare s
 			}
 			got, err := formatGetValue(strings.TrimSpace(source[item.valueSpan.Pos:item.valueSpan.End]))
 			if err != nil {
-				return edit{}, err
+				return edit{}, nil, err
 			}
 			if got == onCompare {
 				matches = append(matches, recordIndex)
@@ -582,13 +588,22 @@ func planSetIn(source string, collection, onKey parser.Key, onValue, onCompare s
 
 	switch len(matches) {
 	case 0:
-		return appendArrayRecord(source, collection, onKey, onValue, key, value), nil
+		recordKey := arrayRecordKey(collection, nextArrayRecordIndex(sections, collection))
+		changes := []semanticSet{{key: append(append(parser.Key{}, recordKey...), onKey...), value: onValue}}
+		if !key.Equals(onKey) {
+			changes = append(changes, semanticSet{key: append(append(parser.Key{}, recordKey...), key...), value: value})
+		}
+		return appendArrayRecord(source, collection, onKey, onValue, key, value), changes, nil
 	case 1:
 		fullKey := arrayRecordKey(collection, matches[0])
 		fullKey = append(fullKey, key...)
-		return planSet(source, fullKey, value)
+		planned, err := planSet(source, fullKey, value)
+		if err != nil {
+			return edit{}, nil, err
+		}
+		return planned, []semanticSet{{key: fullKey, value: value}}, nil
 	default:
-		return edit{}, fmt.Errorf("%s has multiple records matching %s", collection.String(), onKey.String()+":"+onCompare)
+		return edit{}, nil, fmt.Errorf("%s has multiple records matching %s", collection.String(), onKey.String()+":"+onCompare)
 	}
 }
 
@@ -633,6 +648,17 @@ func hasArrayCollection(sections []section, collection parser.Key) bool {
 	return false
 }
 
+func nextArrayRecordIndex(sections []section, collection parser.Key) int {
+	next := 0
+	for _, sec := range sections {
+		index, ok := arrayRecordIndex(sec.key, collection)
+		if ok && index >= next {
+			next = index + 1
+		}
+	}
+	return next
+}
+
 func arrayRecordIndex(key, collection parser.Key) (int, bool) {
 	if len(key) != len(collection)+1 {
 		return 0, false
@@ -667,23 +693,21 @@ func planMissingNestedSet(source string, assignments []assignment, sections []se
 		text := parser.Key{key[len(key)-1]}.String() + " = " + value + lineEnding(source)
 		return edit{start: sec.insertAt, end: sec.insertAt, text: prefixLineEndingAt(source, sec.insertAt) + text}, nil
 	}
-	if insertAt, ok := dottedSiblingInsertAt(assignments, parent); ok {
-		text := key.String() + " = " + value + lineEnding(source)
+	if insertAt, scope, ok := dottedSiblingInsertAt(assignments, parent); ok {
+		relative := relativeKey(key, scope)
+		text := relative.String() + " = " + value + lineEnding(source)
 		return edit{start: insertAt, end: insertAt, text: prefixLineEndingAt(source, insertAt) + text}, nil
 	}
 	if hasSiblingSection(sections, parent) {
 		return appendTable(source, parent, key[len(key)-1], value), nil
 	}
-	if len(key) > 2 {
-		firstParent := parser.Key{key[0]}
-		if sec, ok := findSection(sections, firstParent); ok {
-			if sec.inline {
-				return insertInlineTableChild(source, sec, key[1:].String(), value), nil
-			}
-			child := key[1:]
-			text := child.String() + " = " + value + lineEnding(source)
-			return edit{start: sec.insertAt, end: sec.insertAt, text: prefixLineEndingAt(source, sec.insertAt) + text}, nil
+	if sec, prefix, ok := longestSectionPrefix(sections, key); ok {
+		child := key[len(prefix):]
+		if sec.inline {
+			return insertInlineTableChild(source, sec, child.String(), value), nil
 		}
+		text := child.String() + " = " + value + lineEnding(source)
+		return edit{start: sec.insertAt, end: sec.insertAt, text: prefixLineEndingAt(source, sec.insertAt) + text}, nil
 	}
 	return appendTable(source, parent, key[len(key)-1], value), nil
 }
@@ -713,6 +737,22 @@ func findSection(sections []section, key parser.Key) (section, bool) {
 	return section{}, false
 }
 
+func longestSectionPrefix(sections []section, key parser.Key) (section, parser.Key, bool) {
+	var best section
+	var bestKey parser.Key
+	for _, sec := range sections {
+		if len(sec.key) == 0 || len(sec.key) >= len(key) {
+			continue
+		}
+		if len(sec.key) <= len(bestKey) || !sec.key.IsPrefixOf(key) {
+			continue
+		}
+		best = sec
+		bestKey = sec.key
+	}
+	return best, bestKey, len(bestKey) > 0
+}
+
 func hasSiblingSection(sections []section, parent parser.Key) bool {
 	if len(parent) == 0 {
 		return false
@@ -729,17 +769,26 @@ func hasSiblingSection(sections []section, parent parser.Key) bool {
 	return false
 }
 
-func dottedSiblingInsertAt(assignments []assignment, parent parser.Key) (int, bool) {
+func dottedSiblingInsertAt(assignments []assignment, parent parser.Key) (int, parser.Key, bool) {
 	insertAt := -1
+	var scope parser.Key
 	for _, item := range assignments {
 		if item.key.Equals(parent) {
 			continue
 		}
 		if hasKeyPrefix(item.key, parent) && item.lineSpan.End > insertAt {
 			insertAt = item.lineSpan.End
+			scope = item.scope
 		}
 	}
-	return insertAt, insertAt >= 0
+	return insertAt, scope, insertAt >= 0
+}
+
+func relativeKey(key, scope parser.Key) parser.Key {
+	if len(scope) == 0 || !scope.IsPrefixOf(key) {
+		return key
+	}
+	return key[len(scope):]
 }
 
 func insertRootKey(source, text string) edit {
@@ -1166,6 +1215,7 @@ func scan(source string) ([]assignment, []section, error) {
 		assignments = append(assignments, arrayItemAssignments(fullKey, valueTokens)...)
 		assignments = append(assignments, assignment{
 			key:       fullKey,
+			scope:     append(parser.Key{}, current...),
 			lineSpan:  scanner.Span{Pos: stmt.start, End: stmt.end},
 			valueSpan: valueSpan,
 		})
@@ -1546,6 +1596,147 @@ func appendLine(source, text string) edit {
 		prefix = nl
 	}
 	return edit{start: len(source), end: len(source), text: prefix + text + nl}
+}
+
+func applyVerifiedSet(source string, planned edit, key parser.Key, value string) (string, error) {
+	return applyVerifiedSets(source, planned, []semanticSet{{key: key, value: value}})
+}
+
+func applyVerifiedSets(source string, planned edit, changes []semanticSet) (string, error) {
+	updated := applyEdit(source, planned)
+	return verifySemanticPatch(source, updated, func(expected map[string]string) error {
+		for _, change := range changes {
+			if err := semanticSetValue(expected, change.key, change.value); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func applyVerifiedUnset(source string, planned edit, key parser.Key) (string, error) {
+	updated := applyEdit(source, planned)
+	return verifySemanticPatch(source, updated, func(expected map[string]string) error {
+		semanticDeletePrefix(expected, key)
+		return nil
+	})
+}
+
+func applyVerifiedDelete(source string, planned []edit, key parser.Key, selectors []string) (string, error) {
+	updated := applyEdits(source, planned)
+	if len(selectors) > 0 || indexedRecordDelete(key) {
+		if err := parseTOMLSource(updated); err != nil {
+			return "", err
+		}
+		return updated, nil
+	}
+	return verifySemanticPatch(source, updated, func(expected map[string]string) error {
+		for item := range expected {
+			itemKey, err := parsePath(item)
+			if err != nil {
+				return err
+			}
+			if itemKey.Equals(key) || hasKeyPrefix(itemKey, key) {
+				delete(expected, item)
+			}
+		}
+		return nil
+	})
+}
+
+func semanticSetValue(values map[string]string, key parser.Key, value string) error {
+	semanticDeletePrefix(values, key)
+	parsed, err := parser.ParseValue(value)
+	if err != nil {
+		return err
+	}
+	if array, ok := parsed.X.(parser.Array); ok {
+		if len(array) == 0 {
+			values[formatListKey(key)] = "[]"
+			return nil
+		}
+		for i, item := range array {
+			parsedItem, ok := item.(parser.Value)
+			if !ok {
+				continue
+			}
+			logical, err := formatParsedGetValue(parsedItem)
+			if err != nil {
+				return err
+			}
+			itemKey := append(append(parser.Key{}, key...), strconv.Itoa(i))
+			values[formatListKey(itemKey)] = logical
+		}
+		return nil
+	}
+	logical, err := formatParsedGetValue(parsed)
+	if err != nil {
+		return err
+	}
+	values[formatListKey(key)] = logical
+	return nil
+}
+
+func semanticDeletePrefix(values map[string]string, key parser.Key) {
+	for item := range values {
+		itemKey, err := parsePath(item)
+		if err != nil {
+			continue
+		}
+		if itemKey.Equals(key) || hasKeyPrefix(itemKey, key) {
+			delete(values, item)
+		}
+	}
+}
+
+func indexedRecordDelete(key parser.Key) bool {
+	_, _, ok := indexedRecordKey(key)
+	return ok
+}
+
+func verifySemanticPatch(source, updated string, mutate func(map[string]string) error) (string, error) {
+	expected, err := semanticValues(source)
+	if err != nil {
+		return "", err
+	}
+	if err := mutate(expected); err != nil {
+		return "", err
+	}
+	got, err := semanticValues(updated)
+	if err != nil {
+		return "", err
+	}
+	if !sameSemanticValues(expected, got) {
+		return "", fmt.Errorf("internal TOML patch verification failed")
+	}
+	return updated, nil
+}
+
+func semanticValues(source string) (map[string]string, error) {
+	if err := parseTOMLSource(source); err != nil {
+		return nil, err
+	}
+	entries, err := listValues(source, nil)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]string, len(entries))
+	for _, entry := range entries {
+		out[entry.Key] = entry.Value
+	}
+	return out, nil
+}
+
+func sameSemanticValues(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for key, value := range a {
+		if b[key] != value {
+			return false
+		}
+	}
+	return true
 }
 
 func applyEdit(source string, e edit) string {
