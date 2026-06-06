@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -u
+
+status=0
+
+if ! command -v golangci-lint >/dev/null 2>&1; then
+  printf 'golangci-lint is not installed or not on PATH\n' >&2
+  printf 'install with: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2\n' >&2
+  status=1
+else
+  if [ -z "${GOLANGCI_LINT_CACHE:-}" ]; then
+    export GOLANGCI_LINT_CACHE="${TMPDIR:-/tmp}/config-golangci-lint-cache"
+  fi
+
+  golangci-lint run \
+    --no-config \
+    --enable-only=funlen,gocognit,gocyclo,maintidx \
+    --timeout=5m \
+    --output.text.colors=false \
+    --max-issues-per-linter=0 \
+    --max-same-issues=0
+  lint_status=$?
+  if [ "$lint_status" -ne 0 ]; then
+    status=$lint_status
+  fi
+fi
+
+limit="${GO_FILE_LENGTH_LIMIT:-1000}"
+file_status=0
+
+while IFS= read -r file; do
+  lines=$(wc -l < "$file")
+  if [ "$lines" -gt "$limit" ]; then
+    printf '%s:%s: file has too many lines (%s > %s)\n' "$file" 1 "$lines" "$limit"
+    file_status=1
+  fi
+done < <(find . -type f -name '*.go' \
+  -not -path './.git/*' \
+  -not -path './vendor/*' \
+  | sort)
+
+if [ "$file_status" -ne 0 ]; then
+  status=1
+fi
+
+exit "$status"
