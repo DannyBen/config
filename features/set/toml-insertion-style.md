@@ -46,6 +46,9 @@ service.api.host = "localhost"
 port = 3000
 host = "localhost"
 
+[env.debug]
+port = 8080
+
 [env.prod]
 port = 80
 
@@ -58,9 +61,6 @@ dev.port = 3001
 
 [tui]
 server.port = 3000
-
-[env.debug]
-port = 8080
 
 [tui.network.env.production.server]
 port = 3000

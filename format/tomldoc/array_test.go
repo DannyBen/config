@@ -100,6 +100,34 @@ func TestArrayAddAppendsMissingValuesAndCreatesArray(t *testing.T) {
 	}
 }
 
+func TestArrayAddCreatesMissingParentTable(t *testing.T) {
+	source := "[tui]\nserver.port = 3000\n"
+
+	got, err := ArrayAdd(source, "sandbox_workspace_write.writable_roots", []string{"$HOME/.cache"})
+
+	if err != nil {
+		t.Fatalf("ArrayAdd returned error: %v", err)
+	}
+	want := "[tui]\nserver.port = 3000\n\n[sandbox_workspace_write]\nwritable_roots = [\"$HOME/.cache\"]\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestArrayAddCreatesMissingParentTableWithUnrelatedExistingArray(t *testing.T) {
+	source := "[tui]\nstatus_line = [\"model\", \"branch\"]\n"
+
+	got, err := ArrayAdd(source, "sandbox_workspace_write.writable_roots", []string{"$HOME/.cache"})
+
+	if err != nil {
+		t.Fatalf("ArrayAdd returned error: %v", err)
+	}
+	want := "[tui]\nstatus_line = [\"model\", \"branch\"]\n\n[sandbox_workspace_write]\nwritable_roots = [\"$HOME/.cache\"]\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestArrayDelRemovesValuesAndDeletesEmptyArray(t *testing.T) {
 	source := "roots = [\"$HOME/.cache\", \"/tmp\"]\nextra = [\"/var/tmp\"]\n"
 

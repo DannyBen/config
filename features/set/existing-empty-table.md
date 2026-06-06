@@ -1,6 +1,6 @@
 # set/existing-empty-table
 
-Set inserts repeated missing values into an existing empty TOML table.
+Set inserts repeated missing values near an existing empty TOML table.
 
 ## Source Files
 
@@ -27,9 +27,13 @@ config set tui.keymap.editor.insert_newline enter
 title = "demo"
 
 [tui.keymap]
-composer.submit = "tab"
-composer.queue = "alt-q"
-editor.insert_newline = "enter"
+
+[tui.keymap.composer]
+submit = "tab"
+queue = "alt-q"
+
+[tui.keymap.editor]
+insert_newline = "enter"
 
 [tui]
 theme = "light"

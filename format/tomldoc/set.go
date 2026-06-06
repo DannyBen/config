@@ -30,6 +30,7 @@ type assignment struct {
 
 type section struct {
 	key      parser.Key
+	start    int
 	insertAt int
 	inline   bool
 	empty    bool
@@ -703,12 +704,12 @@ func planMissingNestedSet(source string, assignments []assignment, sections []se
 		return edit{start: insertAt, end: insertAt, text: prefixLineEndingAt(source, insertAt) + text}, nil
 	}
 	if hasSiblingSection(sections, parent) {
-		return appendTable(source, parent, key[len(key)-1], value), nil
+		return insertTable(source, sections, parent, key[len(key)-1], value), nil
 	}
 	if sec, prefix, ok := longestSectionPrefix(sections, key); ok {
 		child := key[len(prefix):]
-		if len(child) > 2 && !sec.inline && !hasAssignmentWithPrefix(assignments, parent) {
-			return appendTable(source, parent, key[len(key)-1], value), nil
+		if len(child) > 1 && !sec.inline && !hasAssignmentWithPrefix(assignments, parent) {
+			return insertTable(source, sections, parent, key[len(key)-1], value), nil
 		}
 		if sec.inline {
 			return insertInlineTableChild(source, sec, child.String(), value), nil
@@ -716,7 +717,7 @@ func planMissingNestedSet(source string, assignments []assignment, sections []se
 		text := child.String() + " = " + value + lineEnding(source)
 		return edit{start: sec.insertAt, end: sec.insertAt, text: prefixLineEndingAt(source, sec.insertAt) + text}, nil
 	}
-	return appendTable(source, parent, key[len(key)-1], value), nil
+	return insertTable(source, sections, parent, key[len(key)-1], value), nil
 }
 
 func insertInlineTableChild(source string, sec section, leaf string, value string) edit {
@@ -795,6 +796,12 @@ func dottedSiblingInsertAt(assignments []assignment, key parser.Key) (int, parse
 }
 
 func dottedSiblingStyleApplies(item assignment, key parser.Key) bool {
+	if item.internal {
+		return false
+	}
+	if len(item.scope) > 0 && !item.scope.IsPrefixOf(key) {
+		return false
+	}
 	relative := relativeKey(key, item.scope)
 	if len(relative) != 2 {
 		return false
@@ -803,7 +810,7 @@ func dottedSiblingStyleApplies(item assignment, key parser.Key) bool {
 		return false
 	}
 	itemRelative := relativeKey(item.key, item.scope)
-	return len(itemRelative) > 1 && itemRelative[0] == relative[0]
+	return len(itemRelative) > 1
 }
 
 func dottedParentInsertAt(assignments []assignment, parent parser.Key) (int, bool) {
@@ -861,10 +868,68 @@ func insertAtBeforeBlankLine(source string, pos int) int {
 	return insertAt
 }
 
-func appendTable(source string, parent parser.Key, leaf string, value string) edit {
+func insertTable(source string, sections []section, parent parser.Key, leaf string, value string) edit {
 	nl := lineEnding(source)
 	text := "[" + parent.String() + "]" + nl + parser.Key{leaf}.String() + " = " + value + nl
-	return edit{start: len(source), end: len(source), text: blockPrefix(source) + text}
+	insertAt, ok := familyTableInsertAt(source, sections, parent)
+	if !ok {
+		return edit{start: len(source), end: len(source), text: blockPrefix(source) + text}
+	}
+	if insertAt < len(source) && !hasLineEndingPrefix(source[insertAt:]) {
+		text += nl
+	}
+	return edit{start: insertAt, end: insertAt, text: tableInsertPrefix(source, insertAt) + text}
+}
+
+func familyTableInsertAt(source string, sections []section, key parser.Key) (int, bool) {
+	if len(key) == 0 {
+		return 0, false
+	}
+	keyText := key.String()
+	var before section
+	beforeText := ""
+	foundBefore := false
+	var after section
+	foundAfter := false
+	for _, sec := range sections {
+		if sec.inline || len(sec.key) == 0 || sec.key[0] != key[0] {
+			continue
+		}
+		secText := sec.key.String()
+		if secText <= keyText {
+			if !foundBefore || secText > beforeText {
+				before = sec
+				beforeText = secText
+				foundBefore = true
+			}
+			continue
+		}
+		if !foundAfter || sec.start < after.start {
+			after = sec
+			foundAfter = true
+		}
+	}
+	if foundBefore {
+		return before.insertAt, true
+	}
+	if foundAfter {
+		return insertAtBeforeBlankLine(source, after.start), true
+	}
+	return 0, false
+}
+
+func tableInsertPrefix(source string, insertAt int) string {
+	nl := lineEnding(source)
+	if insertAt <= 0 {
+		return ""
+	}
+	if strings.HasSuffix(source[:insertAt], nl+nl) {
+		return ""
+	}
+	if strings.HasSuffix(source[:insertAt], nl) {
+		return nl
+	}
+	return nl + nl
 }
 
 func blockPrefix(source string) string {
@@ -1223,12 +1288,12 @@ func scan(source string) ([]assignment, []section, error) {
 			index := arrayCounts[key.String()]
 			arrayCounts[key.String()] = index + 1
 			current = arrayRecordKey(key, index)
-			sections = append(sections, section{key: current, insertAt: stmt.end})
+			sections = append(sections, section{key: current, start: stmt.start, insertAt: stmt.end})
 			continue
 		}
 		if key, ok := tableKey(stmt.tokens); ok {
 			current = key
-			sections = append(sections, section{key: key, insertAt: stmt.end})
+			sections = append(sections, section{key: key, start: stmt.start, insertAt: stmt.end})
 			continue
 		}
 		key, valueSpan, valueTokens, ok := assignmentKey(stmt.tokens)

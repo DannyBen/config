@@ -47,6 +47,34 @@ func TestSetMissingParentCreatesTable(t *testing.T) {
 	}
 }
 
+func TestSetMissingParentCreatesVerifiedTableAtEOF(t *testing.T) {
+	source := "[features]\nmemories = true\n"
+
+	got, err := Set(source, "sandbox_workspace_write.enabled", "true")
+
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "[features]\nmemories = true\n\n[sandbox_workspace_write]\nenabled = true\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestSetMissingParentIgnoresDottedStyleFromUnrelatedTable(t *testing.T) {
+	source := "[tui]\nserver.port = 3000\n\n[features]\nmemories = true\n"
+
+	got, err := Set(source, "sandbox_workspace_write.enabled", "true")
+
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "[tui]\nserver.port = 3000\n\n[features]\nmemories = true\n\n[sandbox_workspace_write]\nenabled = true\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestSetMissingParentFollowsSiblingTableStyle(t *testing.T) {
 	source := "[env.prod]\nport = 80\n\n[env.dev]\nport = 3000\n"
 
@@ -55,7 +83,7 @@ func TestSetMissingParentFollowsSiblingTableStyle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Set returned error: %v", err)
 	}
-	want := "[env.prod]\nport = 80\n\n[env.dev]\nport = 3000\n\n[env.debug]\nport = 8080\n"
+	want := "[env.debug]\nport = 8080\n\n[env.prod]\nport = 80\n\n[env.dev]\nport = 3000\n"
 	if got != want {
 		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
 	}
@@ -89,6 +117,20 @@ func TestSetDeepMissingParentDoesNotFollowUnrelatedDottedStyle(t *testing.T) {
 	}
 }
 
+func TestSetMissingTableInsertsNearSameFamily(t *testing.T) {
+	source := "[tui]\ntheme = \"light\"\n\n[other.keys]\nvalue = 1\n"
+
+	got, err := Set(source, "tui.keymap.submit", "tab")
+
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "[tui]\ntheme = \"light\"\n\n[tui.keymap]\nsubmit = \"tab\"\n\n[other.keys]\nvalue = 1\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestSetMissingParentKeepsExistingDottedSiblingStyle(t *testing.T) {
 	source := "server.port = 3000\n\n[client]\nport = 3000\n"
 
@@ -117,7 +159,7 @@ func TestSetMissingValueInExistingEmptyTable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Set returned error: %v", err)
 	}
-	want := "title = \"demo\"\n\n[tui.keymap]\ncomposer.submit = \"tab\"\ncomposer.queue = \"alt-q\"\neditor.insert_newline = \"enter\"\n\n[tui]\ntheme = \"light\"\n"
+	want := "title = \"demo\"\n\n[tui.keymap]\n\n[tui.keymap.composer]\nsubmit = \"tab\"\nqueue = \"alt-q\"\n\n[tui.keymap.editor]\ninsert_newline = \"enter\"\n\n[tui]\ntheme = \"light\"\n"
 	if got != want {
 		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
 	}
