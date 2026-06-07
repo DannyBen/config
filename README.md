@@ -19,23 +19,14 @@ whole document in canonical pretty JSON.
 
 ## Install
 
-### With eget
+The simplest option is with `eget`:
 
 ```bash
 eget dannyben/config
 ```
 
-### With go install
-
-```bash
-go install github.com/dannyben/config@latest
-```
-
-### From GitHub Releases
-
-Download the archive for your operating system and CPU from the repository's
-[Releases page](https://github.com/DannyBen/config/releases), extract it, and
-put the `config` binary somewhere on your `PATH`.
+Additional installation methods, including Go, GitHub Release archives, and
+Linux `.deb`, `.rpm`, and `.apk` packages, are in [INSTALL.md](INSTALL.md).
 
 ## Highlights
 
