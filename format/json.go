@@ -33,7 +33,7 @@ func (jsonDocument) GetIn(source, collection string, selectors []string, key str
 }
 
 func (jsonDocument) Dump(source, key string) (any, error) {
-	return nil, unsupportedJSON("dump")
+	return jsondoc.Dump(source, key)
 }
 
 func (jsonDocument) Set(source, key, value string) (string, error) {

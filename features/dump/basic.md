@@ -23,6 +23,18 @@ color = "red"
 size = 14
 ```
 
+### JSON
+
+```json
+{
+  "title": "config",
+  "style": {
+    "color": "red",
+    "size": 14
+  }
+}
+```
+
 ## Commands
 
 ```shell

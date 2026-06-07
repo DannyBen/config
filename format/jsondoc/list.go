@@ -130,6 +130,12 @@ func resolvePath(value any, path []string) (any, error) {
 	current := value
 	for i, segment := range path {
 		switch node := current.(type) {
+		case map[string]any:
+			next, ok := node[segment]
+			if !ok {
+				return nil, fmt.Errorf("%s is not set", formatPath(path[:i+1]))
+			}
+			current = next
 		case object:
 			next, ok := objectValue(node, segment)
 			if !ok {
