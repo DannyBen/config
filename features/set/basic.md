@@ -16,6 +16,14 @@ title: demo app
 title = "demo app"
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app"
+}
+```
+
 ## Commands
 
 ```shell
@@ -43,4 +51,16 @@ version = "insert works"
 
 [server]
 port = "nesting works"
+```
+
+### JSON
+
+```json
+{
+  "server": {
+    "port": "nesting works"
+  },
+  "title": "update works",
+  "version": "insert works"
+}
 ```

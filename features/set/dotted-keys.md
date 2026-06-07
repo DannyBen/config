@@ -18,6 +18,16 @@ network:
 name = "public"
 ```
 
+### JSON
+
+```json
+{
+  "network": {
+    "name": "public"
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -40,4 +50,15 @@ network:
 [network]
 name = "public"
 "public.port" = 3000
+```
+
+### JSON
+
+```json
+{
+  "network": {
+    "name": "public",
+    "public.port": 3000
+  }
+}
 ```

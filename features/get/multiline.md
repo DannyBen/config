@@ -26,6 +26,16 @@ literal = '''alpha
 beta'''
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app",
+  "message": "hello\nworld",
+  "literal": "alpha\nbeta"
+}
+```
+
 ## Commands
 
 ```shell

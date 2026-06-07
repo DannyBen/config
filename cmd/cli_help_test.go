@@ -19,9 +19,9 @@ func TestRootHelp(t *testing.T) {
 	}
 	assertContains(t, stdout.String(), "Manipulate config files\n\nUsage:")
 	assertContains(t, stdout.String(), "config COMMAND [options]")
-	assertContains(t, stdout.String(), "set     Create or update config values")
-	assertContains(t, stdout.String(), "delete  Delete a config container")
-	assertContains(t, stdout.String(), "dump    Dump config data")
+	assertContains(t, stdout.String(), "set         Create or update config values")
+	assertContains(t, stdout.String(), "delete      Delete a config container")
+	assertContains(t, stdout.String(), "dump        Dump config data")
 	assertContains(t, stdout.String(), "completion  Generate shell completion scripts")
 	if strings.Contains(stdout.String(), "Topics:") {
 		t.Fatalf("root help should not list topics:\n%s", stdout.String())
@@ -38,7 +38,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
 	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list\n  dump\n  completion")
-	assertContains(t, stdout.String(), "Other topics:\n  environment")
+	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 	if strings.Contains(stdout.String(), "Shortcut:") {
 		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
 	}
@@ -82,6 +82,21 @@ func TestHelpCommandShowsTopicHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "CONFIG_FILE")
 	assertContains(t, stdout.String(), "export CONFIG_FILE=~/.codex/config.toml")
 	assertContains(t, stdout.String(), "CONFIG_LOG_LEVEL")
+}
+
+func TestHelpCommandShowsFormatsTopic(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"help", "formats"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	assertContains(t, stdout.String(), "Topic: formats")
+	assertContains(t, stdout.String(), "TOML")
+	assertContains(t, stdout.String(), ".json")
+	assertContains(t, stdout.String(), "canonical pretty JSON")
 }
 
 func TestHelpCommandRejectsUnknownTopic(t *testing.T) {

@@ -17,6 +17,14 @@ roots: ["$HOME/.cache"]
 roots = ["$HOME/.cache"]
 ```
 
+### JSON
+
+```json
+{
+  "roots": ["$HOME/.cache"]
+}
+```
+
 ## Commands
 
 ```shell
@@ -39,4 +47,18 @@ extra:
 ```toml
 roots = ["$HOME/.cache", "/tmp"]
 extra = ["/var/tmp"]
+```
+
+### JSON
+
+```json
+{
+  "extra": [
+    "/var/tmp"
+  ],
+  "roots": [
+    "$HOME/.cache",
+    "/tmp"
+  ]
+}
 ```

@@ -11,7 +11,7 @@ title: inline mapping demo
 
 database:
   host: localhost
-  pool: {min: 1, max: 10}
+  pool: { min: 1, max: 10 }
 ```
 
 ### TOML
@@ -22,6 +22,21 @@ title = "inline mapping demo"
 [database]
 host = "localhost"
 pool = { min = 1, max = 10 }
+```
+
+### JSON
+
+```json
+{
+  "title": "inline mapping demo",
+  "database": {
+    "host": "localhost",
+    "pool": {
+      "min": 1,
+      "max": 10
+    }
+  }
+}
 ```
 
 ## Commands

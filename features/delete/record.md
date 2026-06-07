@@ -31,6 +31,24 @@ host = "worker.local"
 port = 3001
 ```
 
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "name": "api",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "port": 3001,
+      "host": "worker.local"
+    }
+  ]
+}
+```
+
 ## Commands
 
 ```shell
@@ -56,4 +74,17 @@ title = "delete array record demo"
 name = "api"
 host = "api.local"
 port = 3000
+```
+
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "name": "api",
+      "port": 3000
+    }
+  ]
+}
 ```

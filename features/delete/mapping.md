@@ -30,6 +30,21 @@ color = "blue"
 font = "arial"
 ```
 
+### JSON
+
+```json
+{
+  "title": "delete mapping demo",
+  "server": {
+    "port": 3000
+  },
+  "style": {
+    "color": "blue",
+    "font": "arial"
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -54,4 +69,15 @@ title = "delete mapping demo"
 
 [server]
 port = 3000
+```
+
+### JSON
+
+```json
+{
+  "server": {
+    "port": 3000
+  },
+  "title": "delete mapping demo"
+}
 ```

@@ -1,0 +1,31 @@
+Topic: formats
+
+The `config` command supports TOML, YAML, and JSON files.
+
+**Extensions**
+
+  TOML
+    `.toml`
+
+  YAML
+    `.yaml`, `.yml`
+
+  JSON
+    `.json`
+
+**Write behavior**
+
+  TOML and YAML
+    Edits are source-preserving where possible. Comments, nearby formatting,
+    table style, YAML anchors, and YAML array style are preserved when the edit
+    can be made safely.
+
+  JSON
+    Edits rewrite the whole document as canonical pretty JSON with two-space
+    indentation and a trailing newline. Standard JSON is supported; comments are
+    not allowed.
+
+**YAML arrays**
+
+  New YAML arrays are written in block style. Existing block arrays stay block
+  style. Existing flow arrays stay flow style until they grow to five values.

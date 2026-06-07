@@ -24,6 +24,21 @@ port = 3000
 port = 5432
 ```
 
+### JSON
+
+```json
+{
+  "servers": {
+    "app.example.com": {
+      "port": 3000
+    },
+    "db.example.com": {
+      "port": 5432
+    }
+  }
+}
+```
+
 ## Commands
 
 ```shell

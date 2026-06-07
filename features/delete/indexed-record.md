@@ -42,6 +42,31 @@ host = "backup.local"
 port = 3002
 ```
 
+### JSON
+
+```json
+{
+  "title": "delete indexed record demo",
+  "servers": [
+    {
+      "name": "api",
+      "host": "api.local",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "host": "worker.local",
+      "port": 3001
+    },
+    {
+      "name": "backup",
+      "host": "backup.local",
+      "port": 3002
+    }
+  ]
+}
+```
+
 ## Commands
 
 ```shell
@@ -78,4 +103,24 @@ port = 3000
 name = "backup"
 host = "backup.local"
 port = 3002
+```
+
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "host": "api.local",
+      "name": "api",
+      "port": 3000
+    },
+    {
+      "host": "backup.local",
+      "name": "backup",
+      "port": 3002
+    }
+  ],
+  "title": "delete indexed record demo"
+}
 ```

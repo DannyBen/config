@@ -8,7 +8,3 @@ Commands:
   set   Replace a scalar array
   add   Add values to a scalar array
   del   Remove values from a scalar array
-
-YAML Style:
-  New arrays are written in block style. Existing block arrays stay block style.
-  Existing flow arrays stay flow style until they grow to five values.

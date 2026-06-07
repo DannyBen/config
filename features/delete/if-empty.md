@@ -25,6 +25,23 @@ tui.keymap.composer.submit = "tab"
 insert_newline = "enter"
 ```
 
+### JSON
+
+```json
+{
+  "tui": {
+    "keymap": {
+      "composer": {
+        "submit": "tab"
+      },
+      "editor": {
+        "insert_newline": "enter"
+      }
+    }
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -53,4 +70,18 @@ tui:
 
 ```toml
 tui.keymap.composer.submit = "tab"
+```
+
+### JSON
+
+```json
+{
+  "tui": {
+    "keymap": {
+      "composer": {
+        "submit": "tab"
+      }
+    }
+  }
+}
 ```

@@ -14,6 +14,7 @@ Commands:
 
 Topics:
   environment
+  formats
 
 Examples:
   config help set

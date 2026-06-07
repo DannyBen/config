@@ -16,6 +16,14 @@ title: yaml
 title = "toml"
 ```
 
+### JSON
+
+```json
+{
+  "title": "json"
+}
+```
+
 ## Commands
 
 ```shell
@@ -66,4 +74,23 @@ exponent = 1e6
 string-fallback = "localhost"
 string-number = "1.0"
 string-date = "2024-01-13"
+```
+
+### JSON
+
+```json
+{
+  "bool": true,
+  "date": "2024-01-13",
+  "exponent": 1000000,
+  "float": 1,
+  "int": 10,
+  "negative": -10,
+  "string-date": "2024-01-13",
+  "string-fallback": "localhost",
+  "string-number": "1.0",
+  "time": "14:30:00",
+  "timestamp": "2027-03-24T14:30:00Z",
+  "title": "json"
+}
 ```

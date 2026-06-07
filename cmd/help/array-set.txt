@@ -14,10 +14,6 @@ Parameters:
   VALUE...
     Scalar values to store in the array
 
-YAML Style:
-  New arrays are written in block style. Existing block arrays stay block style.
-  Existing flow arrays stay flow style until they grow to five values.
-
 Options:
   --dry, -n
     Print the updated config without modifying the file

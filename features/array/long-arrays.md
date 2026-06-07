@@ -24,6 +24,16 @@ tags = ["dev", "stage"]
 ports = [3000, 4000]
 ```
 
+### JSON
+
+```json
+{
+  "title": "json",
+  "tags": ["dev", "stage"],
+  "ports": [3000, 4000]
+}
+```
+
 ## Commands
 
 ```shell
@@ -55,4 +65,24 @@ ports:
 title = "toml"
 tags = ["dev", "stage", "api", "sales", "db"]
 ports = [3000, 4000, 5000]
+```
+
+### JSON
+
+```json
+{
+  "ports": [
+    3000,
+    4000,
+    5000
+  ],
+  "tags": [
+    "dev",
+    "stage",
+    "api",
+    "sales",
+    "db"
+  ],
+  "title": "json"
+}
 ```

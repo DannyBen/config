@@ -37,6 +37,8 @@ func Resolve(path string) (Document, string, error) {
 		return tomlDocument{}, "toml", nil
 	case ".yaml", ".yml":
 		return yamlDocument{}, "yaml", nil
+	case ".json":
+		return jsonDocument{}, "json", nil
 	default:
 		return nil, "", fmt.Errorf("unsupported config format for %s", path)
 	}

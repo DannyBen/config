@@ -8,11 +8,14 @@ import (
 	"testing"
 )
 
-func TestTopicNamesIncludesEnvironment(t *testing.T) {
+func TestTopicNamesIncludesKnownTopics(t *testing.T) {
 	names := TopicNames()
 
 	if !slices.Contains(names, "environment") {
 		t.Fatalf("TopicNames() = %v, want environment", names)
+	}
+	if !slices.Contains(names, "formats") {
+		t.Fatalf("TopicNames() = %v, want formats", names)
 	}
 }
 

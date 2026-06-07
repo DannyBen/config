@@ -37,6 +37,23 @@ host = "localhost"
 replica = "localhost"
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app",
+  "tags": ["api", "worker"],
+  "server": {
+    "port": 3000,
+    "enabled": true
+  },
+  "database": {
+    "host": "localhost",
+    "replica": "localhost"
+  }
+}
+```
+
 ## Commands
 
 ```shell

@@ -1,4 +1,8 @@
-# Config
+<div align='center'>
+<img src='config.svg' width=300>
+</div>
+
+# Config - CLI for Manipulating Config Files
 
 ![repocard](https://repocard.dannyben.com/svg/config.svg)
 
@@ -9,8 +13,9 @@ It is built for hand-written config files. Instead of parsing a file into a map
 and writing the whole thing back, `config` plans small source edits so comments,
 spacing, table style, YAML anchors, and nearby formatting can stay intact.
 
-Current support focuses on TOML and YAML.  
-Future support is planned for INI-like, JSON and perhaps other formats.
+Current support includes TOML, YAML and JSON. TOML and YAML edits preserve
+comments and nearby formatting where possible. JSON edits rewrite the whole
+document in canonical pretty JSON.
 
 ## Install
 
@@ -45,6 +50,12 @@ put the `config` binary somewhere on your `PATH`.
 - Refuse ambiguous edits instead of silently rewriting the file.
 
 ## Usage
+
+Supported config files:
+
+- TOML: `.toml`
+- YAML: `.yaml`, `.yml`
+- JSON: `.json`
 
 ```bash
 config get path/to/config.toml server.port

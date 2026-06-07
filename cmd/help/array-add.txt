@@ -7,8 +7,6 @@ Usage:
 Behavior:
   Creates the array when KEY is not set.
   Ignores values that are already present.
-  New YAML arrays are written in block style. Existing block arrays stay block
-  style. Existing flow arrays stay flow style until they grow to five values.
 
 Parameters:
   CONFIG_FILE

@@ -23,6 +23,14 @@ title: yaml
 title = "toml"
 ```
 
+### JSON
+
+```json
+{
+  "title": "json"
+}
+```
+
 ## Commands
 
 ```shell
@@ -47,4 +55,13 @@ title = "toml"
 help = """line one
 line two
 """
+```
+
+### JSON
+
+```json
+{
+  "help": "line one\nline two\n",
+  "title": "json"
+}
 ```

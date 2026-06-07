@@ -21,6 +21,15 @@ message = """hello
 world"""
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app",
+  "message": "hello\nworld"
+}
+```
+
 ## Commands
 
 ```shell
@@ -42,4 +51,13 @@ message: |-
 ```toml
 title = "demo app"
 message = "short"
+```
+
+### JSON
+
+```json
+{
+  "message": "short",
+  "title": "demo app"
+}
 ```

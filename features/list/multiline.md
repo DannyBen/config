@@ -21,6 +21,15 @@ message = """hello
 world"""
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app",
+  "message": "hello\nworld"
+}
+```
+
 ## Commands
 
 ```shell

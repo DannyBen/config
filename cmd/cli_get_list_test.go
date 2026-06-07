@@ -97,7 +97,7 @@ func TestGetFailsWhenConfigFileIsNotSpecified(t *testing.T) {
 func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
-	err := Execute([]string{"get", "config.json", "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "config.ini", "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -105,8 +105,25 @@ func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) 
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if err.Error() != "unsupported config format for config.json" {
+	if err.Error() != "unsupported config format for config.ini" {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestGetPrintsJSONValue(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempJSON(t, `{"database":{"port":5432}}`)
+
+	err := Execute([]string{"get", path, "database.port"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.String() != "5432\n" {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
 	}
 }
 
