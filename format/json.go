@@ -17,11 +17,11 @@ func (jsonDocument) ArrayDel(source, key string, values []string) (string, error
 }
 
 func (jsonDocument) Delete(source, key string, selectors []string) (string, error) {
-	return "", unsupportedJSON("delete")
+	return jsondoc.Delete(source, key, selectors)
 }
 
 func (jsonDocument) DeleteIfEmpty(source, key string) (string, error) {
-	return "", unsupportedJSON("delete --if-empty")
+	return jsondoc.DeleteIfEmpty(source, key)
 }
 
 func (jsonDocument) Get(source, key string) (string, error) {

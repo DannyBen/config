@@ -34,6 +34,25 @@ color = "blue"
 font = "arial"
 ```
 
+### JSON
+
+```json
+{
+  "title": "delete refusals demo",
+  "servers": [
+    {
+      "name": "api",
+      "host": "api.local",
+      "port": 3000
+    }
+  ],
+  "style": {
+    "color": "blue",
+    "font": "arial"
+  }
+}
+```
+
 ## Commands
 
 ```shell

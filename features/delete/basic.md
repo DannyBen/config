@@ -35,6 +35,25 @@ port = 3001
 color = "blue"
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo",
+  "servers": [
+    {
+      "name": "api",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "port": 3001
+    }
+  ],
+  "owner": "ops"
+}
+```
+
 ## Commands
 
 ```shell
@@ -58,4 +77,13 @@ title = "demo"
 
 [style]
 color = "blue"
+```
+
+### JSON
+
+```json
+{
+  "owner": "ops",
+  "title": "demo"
+}
 ```
