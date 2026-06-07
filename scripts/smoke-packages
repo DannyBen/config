@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dist="${1:-dist}"
+dist="$(cd "$dist" && pwd)"
+
+find_one() {
+  local pattern="$1"
+  local file
+
+  file="$(find "$dist" -maxdepth 1 -type f -name "$pattern" | sort | head -n 1)"
+  if [[ -z "$file" ]]; then
+    echo "missing package matching $pattern in $dist" >&2
+    exit 1
+  fi
+
+  basename "$file"
+}
+
+deb="$(find_one 'config_*_amd64.deb')"
+rpm="$(find_one 'config-*.x86_64.rpm')"
+apk="$(find_one 'config-*.x86_64.apk')"
+
+docker run --rm -v "$dist:/dist:ro" ubuntu:24.04 bash -lc "
+  set -euo pipefail
+  apt-get update
+  apt-get install -y /dist/$deb
+  config --version
+  config --help >/dev/null
+  printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
+  test \"\$(config get /tmp/config.toml app.name)\" = demo
+  dpkg -L config >/dev/null
+"
+
+docker run --rm -v "$dist:/dist:ro" fedora:latest bash -lc "
+  set -euo pipefail
+  dnf install -y /dist/$rpm
+  config --version
+  config --help >/dev/null
+  printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
+  test \"\$(config get /tmp/config.toml app.name)\" = demo
+  rpm -ql config >/dev/null
+"
+
+docker run --rm -v "$dist:/dist:ro" alpine:latest sh -lc "
+  set -eu
+  apk add --allow-untrusted /dist/$apk
+  config --version
+  config --help >/dev/null
+  printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
+  test \"\$(config get /tmp/config.toml app.name)\" = demo
+  apk info -L config >/dev/null
+"
