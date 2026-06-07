@@ -13,7 +13,7 @@ func (iniDocument) ArrayAdd(source, key string, values []string) (string, error)
 }
 
 func (iniDocument) ArrayDel(source, key string, values []string) (string, error) {
-	return "", unsupportedINI("array del")
+	return "", unsupportedINI("array delete")
 }
 
 func (iniDocument) Delete(source, key string, selectors []string) (string, error) {

@@ -7,6 +7,6 @@ Usage:
   config array --help | -h
 
 Commands:
-  set   Replace a scalar array
-  add   Add values to a scalar array
-  del   Remove values from a scalar array
+  set      Replace a scalar array
+  add      Add values to a scalar array
+  delete   Remove values from a scalar array

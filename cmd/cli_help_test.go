@@ -148,6 +148,8 @@ func TestDeleteHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config delete [CONFIG_FILE] KEY [options]")
+	assertContains(t, stdout.String(), "config del [CONFIG_FILE] KEY [options]")
+	assertContains(t, stdout.String(), "Aliases:\n  del")
 	assertContains(t, stdout.String(), "CONFIG_FILE\n    Path to the config file")
 	assertContains(t, stdout.String(), "KEY\n    Dot notation string describing the intended config container")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
@@ -190,7 +192,7 @@ func TestArrayHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config array COMMAND [options]\n  config array --help | -h")
-	assertContains(t, stdout.String(), "Commands:\n  set   Replace a scalar array\n  add   Add values to a scalar array\n  del   Remove values from a scalar array")
+	assertContains(t, stdout.String(), "Commands:\n  set      Replace a scalar array\n  add      Add values to a scalar array\n  delete   Remove values from a scalar array")
 	if strings.Contains(stdout.String(), "Examples:") {
 		t.Fatalf("array group help should not include examples:\n%s", stdout.String())
 	}
@@ -213,6 +215,22 @@ func TestArraySubcommandHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config array add [CONFIG_FILE] KEY VALUE... [options]\n  config array add --help | -h")
 	assertContains(t, stdout.String(), "Creates the array when KEY is not set.")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
+}
+
+func TestArrayDeleteSubcommandHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"array", "delete", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Usage:\n  config array delete [CONFIG_FILE] KEY VALUE... [options]\n  config array del [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "Aliases:\n  del")
+	assertContains(t, stdout.String(), "Deletes KEY when no values remain.")
 }
 
 func TestGetHelp(t *testing.T) {
@@ -263,6 +281,8 @@ func TestListHelp(t *testing.T) {
 	}
 	assertContains(t, stdout.String(), "Show config values")
 	assertContains(t, stdout.String(), "Usage:\n  config list [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "config ls [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "Aliases:\n  ls")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize keys and separators")
 }
 

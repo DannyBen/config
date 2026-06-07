@@ -1,7 +1,7 @@
-# array/del
+# array/delete
 
-Array del removes one or more scalar values, ignores missing values and missing
-arrays, and deletes the key when no values remain.
+Array delete removes one or more scalar values, ignores missing values and
+missing arrays, and deletes the key when no values remain.
 
 ## Source Files
 
@@ -31,9 +31,9 @@ extra = ["/var/tmp"]
 ## Commands
 
 ```shell
-config array del roots /tmp /missing
-config array del extra /var/tmp
-config array del absent /tmp
+config array delete roots /tmp /missing
+config array delete extra /var/tmp
+config array delete absent /tmp
 ```
 
 ## Result Files

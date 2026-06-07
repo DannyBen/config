@@ -225,6 +225,24 @@ func TestDeleteWritesUpdatedJSON(t *testing.T) {
 	}
 }
 
+func TestDeleteAliasWritesUpdatedJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempJSON(t, `{"title":"demo","style":{"color":"blue"},"server":{"port":3000}}`)
+
+	err := Execute([]string{"del", path, "style"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	want := "{\n  \"server\": {\n    \"port\": 3000\n  },\n  \"title\": \"demo\"\n}\n"
+	if got := readFile(t, path); got != want {
+		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestDeleteDryPrintsUpdatedTOML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo\"\n\n[style]\ncolor = \"blue\"\nfont = \"arial\"\n")

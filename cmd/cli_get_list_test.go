@@ -202,6 +202,21 @@ func TestListPrintsTOMLValues(t *testing.T) {
 	}
 }
 
+func TestListAliasPrintsTOMLValues(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[server]\nport = 3000\n")
+
+	err := Execute([]string{"ls", path}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "server.port=3000\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
 func TestListPrintsTOMLValuesWithColor(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nport = 3000\n")

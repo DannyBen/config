@@ -237,8 +237,9 @@ func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts deleteOptions
 	cmd := &cobra.Command{
-		Use:   "delete [CONFIG_FILE] KEY [options]",
-		Short: "Delete a config container",
+		Use:     "delete [CONFIG_FILE] KEY [options]",
+		Aliases: []string{"del"},
+		Short:   "Delete a config container",
 		Args: func(cmd *cobra.Command, args []string) error {
 			configFile, rest, err := parseCommandArgs(args, 1, 1, "usage: config delete [CONFIG_FILE] KEY [options]")
 			if err != nil {
@@ -268,8 +269,9 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 func newListCommand(stdout io.Writer) *cobra.Command {
 	var opts listOptions
 	cmd := &cobra.Command{
-		Use:   "list [CONFIG_FILE] [KEY]",
-		Short: "Show config values",
+		Use:     "list [CONFIG_FILE] [KEY]",
+		Aliases: []string{"ls"},
+		Short:   "Show config values",
 		Args: func(cmd *cobra.Command, args []string) error {
 			configFile, rest, err := parseCommandArgs(args, 0, 1, "usage: config list [CONFIG_FILE] [KEY]")
 			if err != nil {
@@ -373,18 +375,19 @@ func newArrayCommand(stdout, stderr io.Writer) *cobra.Command {
 		newArrayEditCommand("add", "Add values to a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
 			return doc.ArrayAdd(source, opts.key, opts.values)
 		}),
-		newArrayEditCommand("del", "Remove values from a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
+		newArrayEditCommand("delete", "Remove values from a scalar array", stdout, stderr, func(doc format.Document, source string, opts arrayOptions) (string, error) {
 			return doc.ArrayDel(source, opts.key, opts.values)
-		}),
+		}, "del"),
 	)
 	return cmd
 }
 
-func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func(format.Document, string, arrayOptions) (string, error)) *cobra.Command {
+func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func(format.Document, string, arrayOptions) (string, error), aliases ...string) *cobra.Command {
 	var opts arrayOptions
 	cmd := &cobra.Command{
-		Use:   name + " [CONFIG_FILE] KEY VALUE... [options]",
-		Short: short,
+		Use:     name + " [CONFIG_FILE] KEY VALUE... [options]",
+		Aliases: aliases,
+		Short:   short,
 		Args: func(cmd *cobra.Command, args []string) error {
 			configFile, rest, err := parseCommandArgs(args, 2, -1, "usage: config array "+name+" [CONFIG_FILE] KEY VALUE... [options]")
 			if err != nil {
@@ -481,12 +484,16 @@ func commandHelpTopic(name string) (string, bool) {
 	switch name {
 	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "edit", "completion":
 		return name, true
+	case "del":
+		return "delete", true
+	case "ls":
+		return "list", true
 	case "array set":
 		return "array-set", true
 	case "array add":
 		return "array-add", true
-	case "array del":
-		return "array-del", true
+	case "array delete", "array del":
+		return "array-delete", true
 	default:
 		return "", false
 	}

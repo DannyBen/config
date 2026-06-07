@@ -2,7 +2,11 @@ Delete a config container
 
 Usage:
   config delete [CONFIG_FILE] KEY [options]
+  config del [CONFIG_FILE] KEY [options]
   config delete --help | -h
+
+Aliases:
+  del
 
 Parameters:
   CONFIG_FILE

@@ -1,8 +1,12 @@
 Remove values from a scalar array
 
 Usage:
+  config array delete [CONFIG_FILE] KEY VALUE... [options]
   config array del [CONFIG_FILE] KEY VALUE... [options]
-  config array del --help | -h
+  config array delete --help | -h
+
+Aliases:
+  del
 
 Behavior:
   Does nothing when KEY is not set.
@@ -30,4 +34,4 @@ Options:
     Colorize diff output
 
 Examples:
-  config array del roots /tmp
+  config array delete roots /tmp

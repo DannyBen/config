@@ -2,7 +2,11 @@ Show config values
 
 Usage:
   config list [CONFIG_FILE] [KEY]
+  config ls [CONFIG_FILE] [KEY]
   config list --help | -h
+
+Aliases:
+  ls
 
 Parameters:
   CONFIG_FILE

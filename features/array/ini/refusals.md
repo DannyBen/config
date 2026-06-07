@@ -21,7 +21,7 @@ config array add roots /var/tmp
 !-> ERROR INI array add is not supported
 exit -> 1
 
-config array del roots /tmp
-!-> ERROR INI array del is not supported
+config array delete roots /tmp
+!-> ERROR INI array delete is not supported
 exit -> 1
 ```
