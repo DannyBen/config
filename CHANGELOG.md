@@ -1,6 +1,35 @@
 Changelog
 ========================================
 
+v0.1.6 - 2026-06-08
+----------------------------------------
+
+- Add `edit` command [`9b54a06`](https://github.com/dannyben/config/commit/9b54a06)
+- Add `list --color` [`8151184`](https://github.com/dannyben/config/commit/8151184)
+- Add TOML implicit parent deletion [`1d82782`](https://github.com/dannyben/config/commit/1d82782)
+- Add command aliases: delete=del, list=ls [`53a8302`](https://github.com/dannyben/config/commit/53a8302)
+- Improve some help texts [`7c3230d`](https://github.com/dannyben/config/commit/7c3230d)
+- Compare [`v0.1.5..v0.1.6`](https://github.com/dannyben/config/compare/v0.1.5..v0.1.6)
+
+
+v0.1.4 - 2026-06-07
+----------------------------------------
+
+- Add INI support [`d6d0419`](https://github.com/dannyben/config/commit/d6d0419)
+- Compare [`v0.1.3..v0.1.4`](https://github.com/dannyben/config/compare/v0.1.3..v0.1.4)
+
+
+v0.1.3 - 2026-06-07
+----------------------------------------
+
+- Add `dump` command [`678118e`](https://github.com/dannyben/config/commit/678118e)
+- Add `dump --json` [`d8f5af7`](https://github.com/dannyben/config/commit/d8f5af7)
+- Add shell `completion` command [`c7e4c55`](https://github.com/dannyben/config/commit/c7e4c55)
+- Add `help formats` [`24dbefd`](https://github.com/dannyben/config/commit/24dbefd)
+- Add JSON support [`5e246d8`](https://github.com/dannyben/config/commit/5e246d8)
+- Compare [`v0.1.2..v0.1.3`](https://github.com/dannyben/config/compare/v0.1.2..v0.1.3)
+
+
 v0.1.2 - 2026-06-07
 ----------------------------------------
 
