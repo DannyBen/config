@@ -19,7 +19,12 @@ find_one() {
 
 deb="$(find_one 'config_*_amd64.deb')"
 rpm="$(find_one 'config-*.x86_64.rpm')"
-apk="$(find_one 'config-*.x86_64.apk')"
+apk="$(find_one 'config_*_x86_64.apk')"
+
+printf 'smoke testing packages:\n'
+printf '  deb: %s\n' "$deb"
+printf '  rpm: %s\n' "$rpm"
+printf '  apk: %s\n' "$apk"
 
 docker run --rm -v "$dist:/dist:ro" ubuntu:24.04 bash -lc "
   set -euo pipefail
