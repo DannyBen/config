@@ -69,6 +69,24 @@ func TestResolveJSON(t *testing.T) {
 	}
 }
 
+func TestResolveINI(t *testing.T) {
+	doc, name, err := Resolve("config.ini")
+
+	if err != nil {
+		t.Fatalf("Resolve returned error: %v", err)
+	}
+	if name != "ini" {
+		t.Fatalf("name = %q, want ini", name)
+	}
+	entries, err := doc.List("title = config\n[server]\nport = 3000\n", "server")
+	if err != nil {
+		t.Fatalf("List returned error: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Key != "server.port" || entries[0].Value != "3000" {
+		t.Fatalf("entries = %#v", entries)
+	}
+}
+
 func TestResolveUnsupportedFormat(t *testing.T) {
 	_, _, err := Resolve("config.conf")
 

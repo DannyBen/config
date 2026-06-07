@@ -13,9 +13,9 @@ It is built for hand-written config files. Instead of parsing a file into a map
 and writing the whole thing back, `config` plans small source edits so comments,
 spacing, table style, YAML anchors, and nearby formatting can stay intact.
 
-Current support includes TOML, YAML and JSON. TOML and YAML edits preserve
-comments and nearby formatting where possible. JSON edits rewrite the whole
-document in canonical pretty JSON.
+Current support includes TOML, YAML, JSON, and read-only INI. TOML and YAML
+edits preserve comments and nearby formatting where possible. JSON edits
+rewrite the whole document in canonical pretty JSON.
 
 ## Install
 
@@ -56,6 +56,7 @@ Supported config files:
 - TOML: `.toml`
 - YAML: `.yaml`, `.yml`
 - JSON: `.json`
+- INI: `.ini` (read-only)
 
 ```bash
 config get path/to/config.toml server.port
