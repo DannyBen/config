@@ -32,9 +32,28 @@ archives:
     files:
       - README.md
 
+nfpms:
+  - id: linux-packages
+    ids:
+      - config
+    package_name: config
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: DannyBen
+    homepage: https://github.com/DannyBen/config
+    maintainer: Danny Ben Shitrit <db@dannyben.com>
+    description: CLI for reading and editing configuration files.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+
 checksum:
   name_template: checksums.txt
   algorithm: sha256
+
+snapshot:
+  version_template: "0.0.0-snapshot-{{ .ShortCommit }}"
 
 changelog:
   sort: asc
