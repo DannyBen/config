@@ -1,6 +1,6 @@
 Topic: formats
 
-The `config` command supports TOML, YAML, and JSON files.
+The `config` command supports TOML, YAML, JSON, and INI files.
 
 **Extensions**
 
@@ -13,6 +13,9 @@ The `config` command supports TOML, YAML, and JSON files.
   JSON
     `.json`
 
+  INI
+    `.ini`
+
 **Write behavior**
 
   TOML and YAML
@@ -24,6 +27,36 @@ The `config` command supports TOML, YAML, and JSON files.
     Edits rewrite the whole document as canonical pretty JSON with two-space
     indentation and a trailing newline. Standard JSON is supported; comments are
     not allowed.
+
+  INI
+    INI files are modeled as global keys and named sections. `get`, `list`,
+    `dump`, `set`, `unset`, and section `delete` are supported. Array
+    operations and record selectors do not apply to INI files.
+
+    Full-line comments starting with `#` or `;` are ignored. Inline comments
+    are not parsed, so `port = 3000 # dev` has the value `3000 # dev`.
+
+**Paths**
+
+  Dot paths address nested config data. Use `..` for a literal dot inside a key
+  segment:
+
+    `network.public..port` -> key `public.port` under `network`
+
+**INI files**
+
+  INI paths support global keys and one section level:
+
+    `key`
+    `section.key`
+
+  The same `..` escaping works for literal dots in INI section or key names:
+
+    `server..port`      -> key `server.port`
+    `env..prod.server`  -> section `env.prod`, key `server`
+    `env.prod..server`  -> section `env`, key `prod.server`
+
+  More than one unescaped separator dot is not supported.
 
 **YAML arrays**
 

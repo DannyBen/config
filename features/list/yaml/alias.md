@@ -1,4 +1,4 @@
-# list/yaml-alias
+# list/yaml/alias
 
 List resolves YAML aliases.
 

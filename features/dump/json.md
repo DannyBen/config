@@ -35,6 +35,16 @@ size = 14
 }
 ```
 
+### INI
+
+```ini
+title = config
+
+[style]
+color = red
+size = 14
+```
+
 ## Commands
 
 ```shell
@@ -46,10 +56,21 @@ config dump --json
 ->   },
 ->   "title": "config"
 -> }
+ini -> {
+ini ->   "style": {
+ini ->     "color": "red",
+ini ->     "size": "14"
+ini ->   },
+ini ->   "title": "config"
+ini -> }
 
 config dump style --json
 -> {
 ->   "color": "red",
 ->   "size": 14
 -> }
+ini -> {
+ini ->   "color": "red",
+ini ->   "size": "14"
+ini -> }
 ```

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -96,8 +98,13 @@ func TestGetFailsWhenConfigFileIsNotSpecified(t *testing.T) {
 
 func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) {
 	var stdout, stderr bytes.Buffer
+	path := filepath.Join(t.TempDir(), "config.conf")
+	if err := os.WriteFile(path, []byte("port = 3000\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("CONFIG_FILE", path)
 
-	err := Execute([]string{"get", "config.ini", "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -105,7 +112,7 @@ func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) 
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if err.Error() != "unsupported config format for config.ini" {
+	if err.Error() != "unsupported config format for "+path {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -120,6 +127,23 @@ func TestGetPrintsJSONValue(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	if stdout.String() != "5432\n" {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+}
+
+func TestGetPrintsINIValue(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempINI(t, "title = demo app\n[server]\nport = 3000\n")
+
+	err := Execute([]string{"get", path, "server.port"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.String() != "3000\n" {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
 	if stderr.Len() != 0 {
@@ -181,6 +205,21 @@ func TestListPrintsTOMLValues(t *testing.T) {
 func TestListPrintsTOMLValuesUnderTable(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
+
+	err := Execute([]string{"list", path, "server"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "server.port=3000\nserver.enabled=true\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestListPrintsINIValuesUnderSection(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempINI(t, "title = demo app\n[server]\nport = 3000\nenabled = true\n")
 
 	err := Execute([]string{"list", path, "server"}, "1.2.3", &stdout, &stderr)
 

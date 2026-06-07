@@ -5,7 +5,7 @@ Usage:
   config --help | -h | --version | -v
 
 Supported Formats:
-  TOML (.toml), YAML (.yaml, .yml), JSON (.json)
+  TOML (.toml), YAML (.yaml, .yml), JSON (.json), INI (.ini)
 
 Commands:
   set         Create or update config values
