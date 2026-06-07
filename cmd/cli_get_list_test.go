@@ -110,20 +110,20 @@ func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) 
 	}
 }
 
-func TestGetJSONReportsUnsupportedOperation(t *testing.T) {
+func TestGetPrintsJSONValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"database":{"port":5432}}`)
 
 	err := Execute([]string{"get", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
-	if err == nil {
-		t.Fatal("expected error")
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
 	}
-	if stdout.Len() != 0 {
+	if stdout.String() != "5432\n" {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if err.Error() != "JSON get is not supported yet" {
-		t.Fatalf("unexpected error: %v", err)
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
 	}
 }
 

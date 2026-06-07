@@ -30,6 +30,25 @@ host = "worker.local"
 port = 3001
 ```
 
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "name": "api",
+      "host": "api.local",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "host": "worker.local",
+      "port": 3001
+    }
+  ]
+}
+```
+
 ## Commands
 
 ```shell

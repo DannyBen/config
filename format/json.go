@@ -25,11 +25,11 @@ func (jsonDocument) DeleteIfEmpty(source, key string) (string, error) {
 }
 
 func (jsonDocument) Get(source, key string) (string, error) {
-	return "", unsupportedJSON("get")
+	return jsondoc.Get(source, key)
 }
 
 func (jsonDocument) GetIn(source, collection string, selectors []string, key string) (string, error) {
-	return "", unsupportedJSON("get --in")
+	return jsondoc.GetIn(source, collection, selectors, key)
 }
 
 func (jsonDocument) Dump(source, key string) (any, error) {
