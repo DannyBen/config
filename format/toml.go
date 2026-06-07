@@ -28,7 +28,7 @@ func (tomlDocument) GetIn(source, collection string, selectors []string, key str
 	return tomldoc.GetIn(source, collection, selectors, key)
 }
 
-func (tomlDocument) Dump(source, key string) (string, error) {
+func (tomlDocument) Dump(source, key string) (any, error) {
 	return tomldoc.Dump(source, key)
 }
 

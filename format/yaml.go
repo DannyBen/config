@@ -28,7 +28,7 @@ func (yamlDocument) GetIn(source, collection string, selectors []string, key str
 	return yamldoc.GetIn(source, collection, selectors, key)
 }
 
-func (yamlDocument) Dump(source, key string) (string, error) {
+func (yamlDocument) Dump(source, key string) (any, error) {
 	return yamldoc.Dump(source, key)
 }
 

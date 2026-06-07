@@ -236,6 +236,21 @@ func TestDumpPrintsTOMLSubtree(t *testing.T) {
 	}
 }
 
+func TestDumpPrintsTOMLSubtreeAsJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nports = [3000, 3001]\nenabled = true\n")
+
+	err := Execute([]string{"dump", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "{\n  \"enabled\": true,\n  \"ports\": [\n    3000,\n    3001\n  ]\n}\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
 func TestDumpPrintsYAMLSubtree(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempYAML(t, "server:\n  hosts:\n    - api.example.com\n    - worker.example.com\n  enabled: true\n")
@@ -246,6 +261,21 @@ func TestDumpPrintsYAMLSubtree(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	want := "- api.example.com\n- worker.example.com\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestDumpPrintsYAMLSubtreeAsJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempYAML(t, "server:\n  hosts:\n    - api.example.com\n    - worker.example.com\n  enabled: true\n")
+
+	err := Execute([]string{"dump", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "{\n  \"enabled\": true,\n  \"hosts\": [\n    \"api.example.com\",\n    \"worker.example.com\"\n  ]\n}\n"
 	if stdout.String() != want {
 		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
 	}

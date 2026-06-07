@@ -21,7 +21,7 @@ func TestRootHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "config COMMAND [options]")
 	assertContains(t, stdout.String(), "set     Create or update config values")
 	assertContains(t, stdout.String(), "delete  Delete a config container")
-	assertContains(t, stdout.String(), "dump    Dump config as YAML")
+	assertContains(t, stdout.String(), "dump    Dump config data")
 	if strings.Contains(stdout.String(), "Topics:") {
 		t.Fatalf("root help should not list topics:\n%s", stdout.String())
 	}
@@ -227,7 +227,8 @@ func TestDumpHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Dump config as YAML")
-	assertContains(t, stdout.String(), "Usage:\n  config dump [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "Dump config data")
+	assertContains(t, stdout.String(), "Usage:\n  config dump [CONFIG_FILE] [KEY] [options]")
 	assertContains(t, stdout.String(), "KEY\n    Optional key or table path to dump")
+	assertContains(t, stdout.String(), "--json\n    Dump as JSON instead of YAML")
 }

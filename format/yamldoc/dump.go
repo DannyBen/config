@@ -1,19 +1,15 @@
 package yamldoc
 
-import (
-	"bytes"
+import "gopkg.in/yaml.v3"
 
-	"gopkg.in/yaml.v3"
-)
-
-func Dump(source, path string) (string, error) {
+func Dump(source, path string) (any, error) {
 	root, err := parseYAML(source)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	key, err := parsePath(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var node *yaml.Node
@@ -22,35 +18,17 @@ func Dump(source, path string) (string, error) {
 	} else {
 		node, err = resolvePath(root, key, nil)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 
 	node, err = resolveAlias(node, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var value any
 	if err := node.Decode(&value); err != nil {
-		return "", err
+		return nil, err
 	}
-	out, err := marshalYAMLDump(value)
-	if err != nil {
-		return "", err
-	}
-	return out, nil
-}
-
-func marshalYAMLDump(value any) (string, error) {
-	var out bytes.Buffer
-	encoder := yaml.NewEncoder(&out)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(value); err != nil {
-		encoder.Close()
-		return "", err
-	}
-	if err := encoder.Close(); err != nil {
-		return "", err
-	}
-	return out.String(), nil
+	return value, nil
 }

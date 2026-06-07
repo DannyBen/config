@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed help/*.txt
@@ -77,6 +80,7 @@ type listOptions struct {
 type dumpOptions struct {
 	configFile string
 	key        string
+	json       bool
 }
 
 type usageError struct {
@@ -282,7 +286,7 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 	var opts dumpOptions
 	cmd := &cobra.Command{
 		Use:   "dump [CONFIG_FILE] [KEY]",
-		Short: "Dump config as YAML",
+		Short: "Dump config data",
 		Args: func(cmd *cobra.Command, args []string) error {
 			configFile, rest, err := parseCommandArgs(args, 0, 1, "usage: config dump [CONFIG_FILE] [KEY]")
 			if err != nil {
@@ -299,6 +303,7 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("dump"))
+	cmd.Flags().BoolVar(&opts.json, "json", false, "Dump as JSON")
 	return cmd
 }
 
@@ -632,12 +637,38 @@ func runDump(opts dumpOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	output, err := doc.Dump(string(source), opts.key)
+	value, err := doc.Dump(string(source), opts.key)
+	if err != nil {
+		return err
+	}
+	output, err := renderDump(value, opts.json)
 	if err != nil {
 		return err
 	}
 	fmt.Fprint(stdout, output)
 	return nil
+}
+
+func renderDump(value any, asJSON bool) (string, error) {
+	if asJSON {
+		out, err := json.MarshalIndent(value, "", "  ")
+		if err != nil {
+			return "", err
+		}
+		return string(out) + "\n", nil
+	}
+
+	var out bytes.Buffer
+	encoder := yaml.NewEncoder(&out)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(value); err != nil {
+		encoder.Close()
+		return "", err
+	}
+	if err := encoder.Close(); err != nil {
+		return "", err
+	}
+	return out.String(), nil
 }
 
 func runEdit(command, configFile string, dry, diff, color bool, stdout, stderr io.Writer, edit func(format.Document, string) (string, error)) error {

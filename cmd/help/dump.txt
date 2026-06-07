@@ -1,7 +1,7 @@
-Dump config as YAML
+Dump config data
 
 Usage:
-  config dump [CONFIG_FILE] [KEY]
+  config dump [CONFIG_FILE] [KEY] [options]
   config dump --help | -h
 
 Parameters:
@@ -11,8 +11,13 @@ Parameters:
   KEY
     Optional key or table path to dump
 
+Options:
+  --json
+    Dump as JSON instead of YAML
+
 Examples:
   config dump path/to/config.toml
   config dump path/to/config.toml database
+  config dump path/to/config.toml database --json
   config dump path/to/config.yaml server.hosts
   config dump
