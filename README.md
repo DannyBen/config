@@ -13,9 +13,9 @@ It is built for hand-written config files. Instead of parsing a file into a map
 and writing the whole thing back, `config` plans small source edits so comments,
 spacing, table style, YAML anchors, and nearby formatting can stay intact.
 
-Current support includes TOML, YAML, JSON, and limited INI. TOML, YAML, and INI
-edits preserve comments and nearby formatting where possible. JSON edits
-rewrite the whole document in canonical pretty JSON.
+Current support includes TOML, YAML, JSON, and INI. TOML, YAML, and INI edits
+preserve comments and nearby formatting where possible. JSON edits rewrite the
+whole document in canonical pretty JSON.
 
 ## Install
 
@@ -41,11 +41,14 @@ put the `config` binary somewhere on your `PATH`.
 
 - Read scalar values with script-friendly output.
 - Set, unset, delete, and list values by dot path.
-- Replace, add, and remove scalar array values with `config array`.
+- Replace, add, and remove scalar array values with `config array` in TOML,
+  YAML, and JSON files.
 - Preserve comments and source formatting where possible.
-- Infer common value types such as numbers, booleans, nulls, and dates.
+- Infer common value types such as numbers, booleans, nulls, and dates where
+  the file format supports them.
 - Create missing parent mappings or tables when the edit is clear.
-- Edit records selected by field value, such as `--in servers --on name:api`.
+- Edit TOML, YAML, and JSON records selected by field value, such as
+  `--in servers --on name:api`.
 - Preview changes with `--dry` or `--diff`.
 - Refuse ambiguous edits instead of silently rewriting the file.
 
@@ -56,7 +59,9 @@ Supported config files:
 - TOML: `.toml`
 - YAML: `.yaml`, `.yml`
 - JSON: `.json`
-- INI: `.ini` (limited support)
+- INI: `.ini`
+
+Run `config help formats` for format-specific behavior.
 
 ```bash
 config get path/to/config.toml server.port

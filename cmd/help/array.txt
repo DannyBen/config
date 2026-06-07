@@ -1,5 +1,7 @@
 Manipulate scalar arrays
 
+Array operations are supported for TOML, YAML, and JSON files.
+
 Usage:
   config array COMMAND [options]
   config array --help | -h
