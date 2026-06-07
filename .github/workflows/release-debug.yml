@@ -28,7 +28,7 @@ jobs:
           args: release --snapshot --clean
 
       - name: Smoke install packages
-        run: scripts/smoke-packages dist
+        run: bash scripts/smoke-packages dist
 
       - name: Upload snapshot assets
         uses: actions/upload-artifact@v4
