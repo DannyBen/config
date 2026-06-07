@@ -37,7 +37,7 @@ func (jsonDocument) Dump(source, key string) (any, error) {
 }
 
 func (jsonDocument) Set(source, key, value string) (string, error) {
-	return "", unsupportedJSON("set")
+	return jsondoc.Set(source, key, value)
 }
 
 func (jsonDocument) SetArray(source, key string, values []string) (string, error) {
@@ -57,7 +57,7 @@ func (jsonDocument) SetInString(source, collection, on, key, value string) (stri
 }
 
 func (jsonDocument) SetString(source, key, value string) (string, error) {
-	return "", unsupportedJSON("set --string")
+	return jsondoc.SetString(source, key, value)
 }
 
 func (jsonDocument) Unset(source, key string) (string, error) {

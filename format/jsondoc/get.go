@@ -185,7 +185,7 @@ func recordMatches(record object, selectors []selector) (bool, error) {
 
 func isContainer(value any) bool {
 	switch value.(type) {
-	case object, []any:
+	case map[string]any, object, []any:
 		return true
 	default:
 		return false

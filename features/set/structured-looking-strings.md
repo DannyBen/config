@@ -16,6 +16,14 @@ title: yaml
 title = "toml"
 ```
 
+### JSON
+
+```json
+{
+  "title": "json"
+}
+```
+
 ## Commands
 
 ```shell
@@ -39,4 +47,14 @@ mapping-text: "{ min = 1, max = 10 }"
 title = "toml"
 array-text = "[3000, 4000]"
 mapping-text = "{ min = 1, max = 10 }"
+```
+
+### JSON
+
+```json
+{
+  "array-text": "[3000, 4000]",
+  "mapping-text": "{ min = 1, max = 10 }",
+  "title": "json"
+}
 ```

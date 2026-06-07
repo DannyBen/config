@@ -18,6 +18,15 @@ title = "toml"
 methods = ["GET", "SET"]
 ```
 
+### JSON
+
+```json
+{
+  "title": "json",
+  "methods": ["GET", "SET"]
+}
+```
+
 ## Commands
 
 ```shell
@@ -38,4 +47,16 @@ methods: [GET, POST]
 ```toml
 title = "toml"
 methods = ["GET", "POST"]
+```
+
+### JSON
+
+```json
+{
+  "methods": [
+    "GET",
+    "POST"
+  ],
+  "title": "json"
+}
 ```

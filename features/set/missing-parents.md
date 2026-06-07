@@ -22,6 +22,17 @@ title = "demo"
 port = 3000
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo",
+  "server": {
+    "port": 3000
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -54,4 +65,19 @@ host = "localhost"
 
 [features]
 experimental = true
+```
+
+### JSON
+
+```json
+{
+  "features": {
+    "experimental": true
+  },
+  "server": {
+    "host": "localhost",
+    "port": 3000
+  },
+  "title": "demo"
+}
 ```
