@@ -234,6 +234,34 @@ func TestDeleteTableBeforeAnotherTable(t *testing.T) {
 	}
 }
 
+func TestDeleteImplicitParentTables(t *testing.T) {
+	source := "title = \"demo app\"\n\n[projects.app]\nowner = \"platform\"\n\n[projects.worker]\nowner = \"operations\"\n\n[server]\nport = 3000\n"
+
+	got, err := Delete(source, "projects", nil)
+
+	if err != nil {
+		t.Fatalf("Delete returned error: %v", err)
+	}
+	want := "title = \"demo app\"\n\n[server]\nport = 3000\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestDeleteImplicitParentTablesWhenInterleaved(t *testing.T) {
+	source := "title = \"demo app\"\n\n[projects.app]\nowner = \"platform\"\n\n[server]\nport = 3000\n\n[projects.worker]\nowner = \"operations\"\n"
+
+	got, err := Delete(source, "projects", nil)
+
+	if err != nil {
+		t.Fatalf("Delete returned error: %v", err)
+	}
+	want := "title = \"demo app\"\n\n[server]\nport = 3000\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestDeleteIfEmptyIgnoresMissingPath(t *testing.T) {
 	source := "title = \"demo app\"\n\n[server]\nport = 3000\n"
 

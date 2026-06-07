@@ -15,6 +15,12 @@ servers:
   - name: worker
     port: 3001
 
+projects:
+  app:
+    owner: platform
+  worker:
+    owner: operations
+
 owner: ops
 ```
 
@@ -31,8 +37,14 @@ port = 3000
 name = "worker"
 port = 3001
 
+[projects.app]
+owner = "platform"
+
 [style]
 color = "blue"
+
+[projects.worker]
+owner = "operations"
 ```
 
 ### JSON
@@ -50,6 +62,14 @@ color = "blue"
       "port": 3001
     }
   ],
+  "projects": {
+    "app": {
+      "owner": "platform"
+    },
+    "worker": {
+      "owner": "operations"
+    }
+  },
   "owner": "ops"
 }
 ```
@@ -58,6 +78,7 @@ color = "blue"
 
 ```shell
 config delete servers
+config delete projects
 ```
 
 ## Result Files

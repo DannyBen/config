@@ -52,16 +52,12 @@ func planDelete(source string, key parser.Key, selectors []string) ([]edit, erro
 		}
 	}
 	for _, sec := range sections {
-		if sec.key.Equals(key) {
-			if sec.inline {
-				return nil, fmt.Errorf("%s is an inline table; delete is not implemented for inline tables yet", key.String())
-			}
-			start, end, ok := tableDeleteRange(source, key)
-			if !ok {
-				return nil, fmt.Errorf("%s cannot be safely deleted", key.String())
-			}
-			return []edit{{start: start, end: end, text: ""}}, nil
+		if sec.key.Equals(key) && sec.inline {
+			return nil, fmt.Errorf("%s is an inline table; delete is not implemented for inline tables yet", key.String())
 		}
+	}
+	if planned, ok := tablePrefixDeleteRanges(source, key); ok {
+		return planned, nil
 	}
 	if hasArrayCollection(sections, key) {
 		planned, ok := arrayCollectionDeleteRanges(source, key, sections)
@@ -71,6 +67,25 @@ func planDelete(source string, key parser.Key, selectors []string) ([]edit, erro
 		return planned, nil
 	}
 	return nil, fmt.Errorf("%s is not set", key.String())
+}
+
+func tablePrefixDeleteRanges(source string, key parser.Key) ([]edit, bool) {
+	var planned []edit
+	for _, stmt := range statements(source) {
+		if len(stmt.tokens) == 0 {
+			continue
+		}
+		table, ok := tableKey(stmt.tokens)
+		if !ok || (!table.Equals(key) && !hasKeyPrefix(table, key)) {
+			continue
+		}
+		start, end, ok := tableDeleteRange(source, table)
+		if !ok {
+			return nil, false
+		}
+		planned = append(planned, edit{start: start, end: end, text: ""})
+	}
+	return planned, len(planned) > 0
 }
 
 func indexedRecordKey(key parser.Key) (parser.Key, int, bool) {
