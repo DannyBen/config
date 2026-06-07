@@ -12,20 +12,24 @@ const (
 	listMaxKeyLength  = 60
 )
 
-func renderList(entries []format.Entry) string {
+func renderList(entries []format.Entry, color bool) string {
 	var out strings.Builder
 	for _, entry := range entries {
-		out.WriteString(renderListEntry(entry))
+		out.WriteString(renderListEntry(entry, color))
 		out.WriteByte('\n')
 	}
 	return out.String()
 }
 
-func renderListEntry(entry format.Entry) string {
+func renderListEntry(entry format.Entry, color bool) string {
 	key := truncateRunes(entry.Key, listMaxKeyLength)
 	value := strings.Join(strings.Fields(entry.Value), " ")
 	availableValue := listMaxLineLength - runeLen(key) - len("=")
-	return fmt.Sprintf("%s=%s", key, truncateRunes(value, availableValue))
+	value = truncateRunes(value, availableValue)
+	if color {
+		return fmt.Sprintf("\x1b[36m%s\x1b[0m\x1b[33m=\x1b[0m%s", key, value)
+	}
+	return fmt.Sprintf("%s=%s", key, value)
 }
 
 func truncateRunes(value string, maxLength int) string {

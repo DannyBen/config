@@ -76,6 +76,7 @@ type arrayOptions struct {
 type listOptions struct {
 	configFile string
 	key        string
+	color      bool
 }
 
 type dumpOptions struct {
@@ -285,6 +286,7 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("list"))
+	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize keys and separators")
 	return cmd
 }
 
@@ -664,7 +666,7 @@ func runList(opts listOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprint(stdout, renderList(entries))
+	fmt.Fprint(stdout, renderList(entries, opts.color))
 	return nil
 }
 

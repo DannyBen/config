@@ -250,6 +250,22 @@ func TestDumpHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "--json\n    Dump as JSON instead of YAML")
 }
 
+func TestListHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"list", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Show config values")
+	assertContains(t, stdout.String(), "Usage:\n  config list [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "--color, -c\n    Colorize keys and separators")
+}
+
 func TestEditHelp(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

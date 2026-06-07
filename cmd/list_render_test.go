@@ -12,7 +12,7 @@ func TestRenderListUsesUnifiedKeyValuePresentation(t *testing.T) {
 		{Key: "server.port", Value: "3000"},
 	}
 
-	got := renderList(entries)
+	got := renderList(entries, false)
 
 	want := "name=rush\nserver.port=3000\n"
 	if got != want {
@@ -23,7 +23,7 @@ func TestRenderListUsesUnifiedKeyValuePresentation(t *testing.T) {
 func TestRenderListEntryOwnsMultilinePresentation(t *testing.T) {
 	entry := format.Entry{Key: "help", Value: "line one\nline two"}
 
-	got := renderListEntry(entry)
+	got := renderListEntry(entry, false)
 
 	want := "help=line one line two"
 	if got != want {
@@ -37,7 +37,7 @@ func TestRenderListEntryTruncatesLongValue(t *testing.T) {
 		Value: "Clone a GitHub package repository. This command clones the repository and registers it in the configuration file.",
 	}
 
-	got := renderListEntry(entry)
+	got := renderListEntry(entry, false)
 
 	want := "commands.2.help=Clone a GitHub package repository. This command clones the rep…"
 	if got != want {
@@ -54,7 +54,7 @@ func TestRenderListEntryPreservesKeyBeforeValue(t *testing.T) {
 		Value: "Target package name. This can either be the package name without the repository name.",
 	}
 
-	got := renderListEntry(entry)
+	got := renderListEntry(entry, false)
 
 	want := "commands.10.args.1.deeply.nested.configuration.path.target_…=Target package na…"
 	if got != want {
@@ -62,5 +62,18 @@ func TestRenderListEntryPreservesKeyBeforeValue(t *testing.T) {
 	}
 	if runeLen(got) > listMaxLineLength {
 		t.Fatalf("rendered line length = %d, want <= %d", runeLen(got), listMaxLineLength)
+	}
+}
+
+func TestRenderListColorsKeyAndSeparator(t *testing.T) {
+	entries := []format.Entry{
+		{Key: "server.port", Value: "3000"},
+	}
+
+	got := renderList(entries, true)
+
+	want := "\x1b[36mserver.port\x1b[0m\x1b[33m=\x1b[0m3000\n"
+	if got != want {
+		t.Fatalf("renderList mismatch\nwant:\n%q\ngot:\n%q", want, got)
 	}
 }
