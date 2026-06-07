@@ -24,6 +24,24 @@ func TestUnsetWritesUpdatedTOML(t *testing.T) {
 	}
 }
 
+func TestUnsetWritesUpdatedJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempJSON(t, `{"database":{"host":"localhost","port":5432}}`)
+
+	err := Execute([]string{"unset", path, "database.port"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	want := "{\n  \"database\": {\n    \"host\": \"localhost\"\n  }\n}\n"
+	if got := readFile(t, path); got != want {
+		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestUnsetUsesConfigFileEnv(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nhost = \"localhost\"\nport = 5432\n")

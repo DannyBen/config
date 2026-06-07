@@ -24,6 +24,17 @@ title = "demo"
 port = 3000
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo",
+  "server": {
+    "port": 3000
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -44,4 +55,13 @@ server:
 
 ```toml
 title = "demo"
+```
+
+### JSON
+
+```json
+{
+  "server": {},
+  "title": "demo"
+}
 ```

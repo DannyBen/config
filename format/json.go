@@ -61,11 +61,11 @@ func (jsonDocument) SetString(source, key, value string) (string, error) {
 }
 
 func (jsonDocument) Unset(source, key string) (string, error) {
-	return "", unsupportedJSON("unset")
+	return jsondoc.Unset(source, key)
 }
 
 func (jsonDocument) UnsetIn(source, collection string, selectors []string, key string) (string, error) {
-	return "", unsupportedJSON("unset --in")
+	return jsondoc.UnsetIn(source, collection, selectors, key)
 }
 
 func (jsonDocument) List(source, key string) ([]Entry, error) {

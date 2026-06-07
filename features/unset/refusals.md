@@ -18,11 +18,22 @@ database:
 port = 5432
 ```
 
+### JSON
+
+```json
+{
+  "database": {
+    "port": 5432
+  }
+}
+```
+
 ## Commands
 
 ```shell
 config unset database
 yaml !-> ERROR database is a container, not a scalar value
 toml !-> ERROR database is a table, not a value
+json !-> ERROR database is a container, not a scalar value
 exit -> 1
 ```

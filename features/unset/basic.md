@@ -26,6 +26,19 @@ port = 5432
 password = "secret"
 ```
 
+### JSON
+
+```json
+{
+  "title": "unset demo",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "password": "secret"
+  }
+}
+```
+
 ## Commands
 
 ```shell
@@ -52,4 +65,16 @@ title = "unset demo"
 [database]
 host = "localhost"
 port = 5432
+```
+
+### JSON
+
+```json
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432
+  },
+  "title": "unset demo"
+}
 ```

@@ -19,6 +19,15 @@ submit = "tab"
 queue = "alt-w"
 ```
 
+### JSON
+
+```json
+{
+  "submit": "tab",
+  "queue": "alt-w"
+}
+```
+
 ## Commands
 
 ```shell
@@ -39,4 +48,12 @@ queue: alt-w
 
 ```toml
 queue = "alt-w"
+```
+
+### JSON
+
+```json
+{
+  "queue": "alt-w"
+}
 ```

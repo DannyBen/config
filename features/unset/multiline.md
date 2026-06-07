@@ -26,6 +26,16 @@ message = """hello
 world"""
 ```
 
+### JSON
+
+```json
+{
+  "title": "demo app",
+  "obsolete": "remove\nme",
+  "message": "hello\nworld"
+}
+```
+
 ## Commands
 
 ```shell
@@ -49,4 +59,13 @@ message: |-
 title = "demo app"
 message = """hello
 world"""
+```
+
+### JSON
+
+```json
+{
+  "message": "hello\nworld",
+  "title": "demo app"
+}
 ```
