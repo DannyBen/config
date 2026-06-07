@@ -1,4 +1,4 @@
-name: release-debug
+name: release-candidate
 
 on:
   workflow_dispatch:
