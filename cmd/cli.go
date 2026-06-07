@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/dannyben/config/format"
@@ -83,6 +84,10 @@ type dumpOptions struct {
 	json       bool
 }
 
+type editOptions struct {
+	configFile string
+}
+
 type usageError struct {
 	message string
 }
@@ -133,7 +138,7 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 	root.SetVersionTemplate("{{.Version}}\n")
 	root.CompletionOptions.DisableDefaultCmd = true
 
-	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newCompletionCommand(stdout), newHelpCommand(stdout))
+	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newEditCommand(stdout, stderr), newCompletionCommand(stdout), newHelpCommand(stdout))
 	return root
 }
 
@@ -308,6 +313,27 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 	return cmd
 }
 
+func newEditCommand(stdout, stderr io.Writer) *cobra.Command {
+	var opts editOptions
+	cmd := &cobra.Command{
+		Use:   "edit [CONFIG_FILE]",
+		Short: "Open the config file in an editor",
+		Args: func(cmd *cobra.Command, args []string) error {
+			configFile, _, err := parseCommandArgs(args, 0, 0, "usage: config edit [CONFIG_FILE]")
+			if err != nil {
+				return err
+			}
+			opts.configFile = configFile
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runOpenEditor(opts, cmd.InOrStdin(), stdout, stderr)
+		},
+	}
+	cmd.SetHelpFunc(helpPrinter("edit"))
+	return cmd
+}
+
 func newCompletionCommand(stdout io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "completion SHELL",
@@ -428,7 +454,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump", "completion"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump", "edit", "completion"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -451,7 +477,7 @@ func helpIndex() string {
 
 func commandHelpTopic(name string) (string, bool) {
 	switch name {
-	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "completion":
+	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "edit", "completion":
 		return name, true
 	case "array set":
 		return "array-set", true
@@ -666,6 +692,22 @@ func runDump(opts dumpOptions, stdout io.Writer) error {
 	}
 	fmt.Fprint(stdout, output)
 	return nil
+}
+
+func runOpenEditor(opts editOptions, stdin io.Reader, stdout, stderr io.Writer) error {
+	configFile, err := resolveConfigFile(opts.configFile)
+	if err != nil {
+		return err
+	}
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vi"
+	}
+	cmd := exec.Command("sh", "-c", editor+" \"$1\"", "config-edit", configFile)
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	return cmd.Run()
 }
 
 func runCompletion(root *cobra.Command, shell string, stdout io.Writer) error {

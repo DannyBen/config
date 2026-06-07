@@ -11,6 +11,9 @@ Commands:
   delete
   array
   list
+  dump
+  edit
+  completion
 
 Topics:
   environment

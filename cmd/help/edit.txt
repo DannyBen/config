@@ -1,0 +1,17 @@
+Open the config file in an editor
+
+Usage:
+  config edit [CONFIG_FILE]
+  config edit --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+Environment:
+  EDITOR
+    Editor command to run. Defaults to vi.
+
+Examples:
+  config edit path/to/config.toml
+  config edit

@@ -68,6 +68,7 @@ For repeated edits, set `CONFIG_FILE` once:
 export CONFIG_FILE=~/.codex/config.toml
 config get tui.keymap.composer.submit
 config set tui.keymap.composer.submit tab
+config edit
 ```
 
 Use `--diff` or `--diff --color` (`-dc`) to preview an edit:

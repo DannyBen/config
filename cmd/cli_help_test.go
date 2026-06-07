@@ -22,6 +22,7 @@ func TestRootHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "set         Create or update config values")
 	assertContains(t, stdout.String(), "delete      Delete a config container")
 	assertContains(t, stdout.String(), "dump        Dump config data")
+	assertContains(t, stdout.String(), "edit        Open the config file in an editor")
 	assertContains(t, stdout.String(), "completion  Generate shell completion scripts")
 	if strings.Contains(stdout.String(), "Topics:") {
 		t.Fatalf("root help should not list topics:\n%s", stdout.String())
@@ -37,7 +38,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list\n  dump\n  completion")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list\n  dump\n  edit\n  completion")
 	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 	if strings.Contains(stdout.String(), "Shortcut:") {
 		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
@@ -247,6 +248,22 @@ func TestDumpHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config dump [CONFIG_FILE] [KEY] [options]")
 	assertContains(t, stdout.String(), "KEY\n    Optional key or table path to dump")
 	assertContains(t, stdout.String(), "--json\n    Dump as JSON instead of YAML")
+}
+
+func TestEditHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"edit", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Open the config file in an editor")
+	assertContains(t, stdout.String(), "Usage:\n  config edit [CONFIG_FILE]")
+	assertContains(t, stdout.String(), "EDITOR\n    Editor command to run. Defaults to vi.")
 }
 
 func TestCompletionHelp(t *testing.T) {
