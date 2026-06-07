@@ -33,7 +33,7 @@ func (iniDocument) GetIn(source, collection string, selectors []string, key stri
 }
 
 func (iniDocument) Dump(source, key string) (any, error) {
-	return nil, unsupportedINI("dump")
+	return inidoc.Dump(source, key)
 }
 
 func (iniDocument) Set(source, key, value string) (string, error) {

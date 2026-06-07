@@ -49,6 +49,19 @@ func Get(source, path string) (string, error) {
 	return values[0], nil
 }
 
+func Dump(source, path string) (any, error) {
+	section, key, err := parsePath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := parse(source)
+	if err != nil {
+		return nil, err
+	}
+	return doc.dump(section, key)
+}
+
 func List(source, path string) ([]Entry, error) {
 	section, key, err := parsePath(path)
 	if err != nil {
@@ -59,7 +72,10 @@ func List(source, path string) ([]Entry, error) {
 	if err != nil {
 		return nil, err
 	}
+	return doc.list(section, key)
+}
 
+func (doc document) list(section, key string) ([]Entry, error) {
 	var entries []Entry
 	if section == "" && key != "" {
 		var keyEntries []Entry
@@ -101,6 +117,86 @@ func List(source, path string) ([]Entry, error) {
 		return nil, fmt.Errorf("%s is not set", formatPath(section, key))
 	}
 	return entries, nil
+}
+
+func (doc document) dump(section, key string) (any, error) {
+	if section == "" && key == "" {
+		return doc.dumpAll()
+	}
+	if section == "" {
+		var values []string
+		sectionMap := make(map[string]any)
+		for _, entry := range doc.entries {
+			switch {
+			case entry.section == "" && entry.key == key:
+				values = append(values, entry.value)
+			case entry.section == key:
+				if _, ok := sectionMap[entry.key]; ok {
+					return nil, fmt.Errorf("%s has multiple values", formatPath(entry.section, entry.key))
+				}
+				sectionMap[entry.key] = entry.value
+			}
+		}
+		if len(values) != 0 && len(sectionMap) != 0 {
+			return nil, fmt.Errorf("%s matches both a key and section", formatPath("", key))
+		}
+		if len(values) > 1 {
+			return nil, fmt.Errorf("%s has multiple values", formatPath("", key))
+		}
+		if len(values) == 1 {
+			return values[0], nil
+		}
+		if len(sectionMap) != 0 {
+			return sectionMap, nil
+		}
+		return nil, fmt.Errorf("%s is not set", formatPath("", key))
+	}
+
+	var values []string
+	for _, entry := range doc.entries {
+		if entry.section == section && entry.key == key {
+			values = append(values, entry.value)
+		}
+	}
+	if len(values) == 0 {
+		return nil, fmt.Errorf("%s is not set", formatPath(section, key))
+	}
+	if len(values) > 1 {
+		return nil, fmt.Errorf("%s has multiple values", formatPath(section, key))
+	}
+	return values[0], nil
+}
+
+func (doc document) dumpAll() (map[string]any, error) {
+	out := make(map[string]any)
+	for _, entry := range doc.entries {
+		if entry.section == "" {
+			if existing, ok := out[entry.key]; ok {
+				if _, ok := existing.(map[string]any); ok {
+					return nil, fmt.Errorf("%s matches both a key and section", formatPath("", entry.key))
+				}
+				return nil, fmt.Errorf("%s has multiple values", formatPath("", entry.key))
+			}
+			out[entry.key] = entry.value
+			continue
+		}
+
+		existing, ok := out[entry.section]
+		if !ok {
+			sectionMap := map[string]any{entry.key: entry.value}
+			out[entry.section] = sectionMap
+			continue
+		}
+		sectionMap, ok := existing.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("%s matches both a key and section", formatPath("", entry.section))
+		}
+		if _, ok := sectionMap[entry.key]; ok {
+			return nil, fmt.Errorf("%s has multiple values", formatPath(entry.section, entry.key))
+		}
+		sectionMap[entry.key] = entry.value
+	}
+	return out, nil
 }
 
 func parse(source string) (document, error) {

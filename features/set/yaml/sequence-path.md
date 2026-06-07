@@ -1,4 +1,4 @@
-# set/yaml-sequence-path
+# set/yaml/sequence-path
 
 Set creates missing parents through YAML sequence indexes.
 

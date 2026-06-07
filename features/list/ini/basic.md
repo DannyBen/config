@@ -1,4 +1,4 @@
-# list/ini-basic
+# list/ini/basic
 
 Basic INI list operations
 

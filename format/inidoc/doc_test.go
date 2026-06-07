@@ -67,6 +67,63 @@ func TestGetValue(t *testing.T) {
 	}
 }
 
+func TestDump(t *testing.T) {
+	source := "title = config\nserver.port = 3000\n[style]\ncolor = red\nsize = 14\n"
+
+	got, err := Dump(source, "")
+	if err != nil {
+		t.Fatalf("Dump returned error: %v", err)
+	}
+
+	want := map[string]any{
+		"title":       "config",
+		"server.port": "3000",
+		"style": map[string]any{
+			"color": "red",
+			"size":  "14",
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Dump = %#v, want %#v", got, want)
+	}
+}
+
+func TestDumpSection(t *testing.T) {
+	got, err := Dump("title = config\n[style]\ncolor = red\nsize = 14\n", "style")
+	if err != nil {
+		t.Fatalf("Dump returned error: %v", err)
+	}
+
+	want := map[string]any{"color": "red", "size": "14"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Dump = %#v, want %#v", got, want)
+	}
+}
+
+func TestDumpValue(t *testing.T) {
+	got, err := Dump("title = config\n[style]\ncolor = red\n", "style.color")
+	if err != nil {
+		t.Fatalf("Dump returned error: %v", err)
+	}
+	if got != "red" {
+		t.Fatalf("Dump = %#v, want red", got)
+	}
+}
+
+func TestDumpRefusesDuplicateKeys(t *testing.T) {
+	_, err := Dump("port = 3000\nport = 3001\n", "")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestDumpRefusesKeySectionConflict(t *testing.T) {
+	_, err := Dump("server = localhost\n[server]\nport = 3000\n", "")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
 func TestFullLineCommentsOnly(t *testing.T) {
 	source := `
 ; comment

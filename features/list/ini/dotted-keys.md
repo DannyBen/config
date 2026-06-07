@@ -1,4 +1,4 @@
-# list/ini-dotted-keys
+# list/ini/dotted-keys
 
 List INI keys and sections with literal dots.
 

@@ -1,4 +1,4 @@
-# set/toml-existing-empty-table
+# set/toml/existing-empty-table
 
 Set inserts repeated missing values near an existing empty TOML table.
 

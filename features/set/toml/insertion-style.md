@@ -1,4 +1,4 @@
-# set/toml-insertion-style
+# set/toml/insertion-style
 
 Set uses nearby TOML structure as a style hint when inserting nested paths.
 
