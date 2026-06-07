@@ -1,3 +1,7 @@
+<div align='center'>
+<img src='config.svg' width=300>
+</div>
+
 # Config
 
 ![repocard](https://repocard.dannyben.com/svg/config.svg)

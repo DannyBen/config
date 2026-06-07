@@ -9,11 +9,11 @@ import (
 type jsonDocument struct{}
 
 func (jsonDocument) ArrayAdd(source, key string, values []string) (string, error) {
-	return "", unsupportedJSON("array add")
+	return jsondoc.ArrayAdd(source, key, values)
 }
 
 func (jsonDocument) ArrayDel(source, key string, values []string) (string, error) {
-	return "", unsupportedJSON("array del")
+	return jsondoc.ArrayDel(source, key, values)
 }
 
 func (jsonDocument) Delete(source, key string, selectors []string) (string, error) {
@@ -41,7 +41,7 @@ func (jsonDocument) Set(source, key, value string) (string, error) {
 }
 
 func (jsonDocument) SetArray(source, key string, values []string) (string, error) {
-	return "", unsupportedJSON("array set")
+	return jsondoc.SetArray(source, key, values)
 }
 
 func (jsonDocument) SetIn(source, collection, on, key, value string) (string, error) {

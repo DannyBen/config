@@ -200,6 +200,24 @@ func TestSetWritesUpdatedJSON(t *testing.T) {
 	}
 }
 
+func TestArrayAddWritesUpdatedJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempJSON(t, `{"roots":["$HOME/.cache"]}`)
+
+	err := Execute([]string{"array", "add", path, "roots", "/tmp", "$HOME/.cache"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	want := "{\n  \"roots\": [\n    \"$HOME/.cache\",\n    \"/tmp\"\n  ]\n}\n"
+	if got := readFile(t, path); got != want {
+		t.Fatalf("file mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestSetRejectsMultipleValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nports = [1000]\n")

@@ -26,9 +26,9 @@ func SetInString(source, collectionPath, rawSelector, path, rawValue string) (st
 }
 
 func setValue(source, path, rawValue string, forceString bool) (string, error) {
-	var data any
-	if err := json.Unmarshal([]byte(source), &data); err != nil {
-		return "", fmt.Errorf("invalid JSON: %w", err)
+	data, err := parseMutableJSON(source)
+	if err != nil {
+		return "", err
 	}
 	key, err := parsePath(path)
 	if err != nil {
@@ -49,9 +49,9 @@ func setValue(source, path, rawValue string, forceString bool) (string, error) {
 }
 
 func setValueIn(source, collectionPath, rawSelector, path, rawValue string, forceString bool) (string, error) {
-	var data any
-	if err := json.Unmarshal([]byte(source), &data); err != nil {
-		return "", fmt.Errorf("invalid JSON: %w", err)
+	data, err := parseMutableJSON(source)
+	if err != nil {
+		return "", err
 	}
 	collection, err := parsePath(collectionPath)
 	if err != nil {
@@ -157,6 +157,14 @@ func parseSetValue(raw string, forceString bool) (any, error) {
 		return number, nil
 	}
 	return raw, nil
+}
+
+func parseMutableJSON(source string) (any, error) {
+	var data any
+	if err := json.Unmarshal([]byte(source), &data); err != nil {
+		return nil, fmt.Errorf("invalid JSON: %w", err)
+	}
+	return data, nil
 }
 
 func parseJSONNumber(raw string) (any, bool) {
