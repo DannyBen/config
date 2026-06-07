@@ -12,8 +12,9 @@ Parameters:
     Dot notation string describing the intended config key
 
   VALUE
-    Value to store. Single values are parsed as TOML literals when possible;
-    otherwise they are stored as strings. Use `-` to read from stdin.
+    Value to store. TOML and YAML values are parsed as native literals when
+    possible; JSON values are parsed as JSON scalars when possible. Otherwise
+    values are stored as strings. Use `-` to read from stdin.
 
 Options:
   --in COLLECTION
@@ -23,7 +24,7 @@ Options:
     Select or create a record by FIELD:VALUE. Must be used with --in.
 
   --string, -s
-    Store VALUE as a string, even when it looks like a TOML literal
+    Store VALUE as a string, even when it looks like a typed literal
 
   --dry, -n
     Print the updated config without modifying the file
@@ -44,7 +45,7 @@ Examples:
   # Unique array-record update or create
   config set path/to/config.toml port 3000 --in servers --on name:web
 
-  # TOML literal value
+  # Typed literal value
   config set path/to/config.toml release.date 2027-03-24
 
   # String escape hatch

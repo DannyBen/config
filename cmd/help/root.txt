@@ -4,13 +4,16 @@ Usage:
   config COMMAND [options]
   config --help | -h | --version | -v
 
+Supported Formats:
+  TOML (.toml), YAML (.yaml, .yml), JSON (.json)
+
 Commands:
-  set     Create or update config values
-  get     Show a config value
-  unset   Delete a config value
-  delete  Delete a config container
-  array   Manipulate scalar arrays
-  list    Show config values
-  dump    Dump config data
+  set         Create or update config values
+  get         Show a config value
+  unset       Delete a config value
+  delete      Delete a config container
+  array       Manipulate scalar arrays
+  list        Show config values
+  dump        Dump config data
   completion  Generate shell completion scripts
-  help    Show command help or topic help
+  help        Show command help or topic help
