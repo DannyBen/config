@@ -21,6 +21,7 @@ func TestRootHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "config COMMAND [options]")
 	assertContains(t, stdout.String(), "set     Create or update config values")
 	assertContains(t, stdout.String(), "delete  Delete a config container")
+	assertContains(t, stdout.String(), "dump    Dump config as YAML")
 	if strings.Contains(stdout.String(), "Topics:") {
 		t.Fatalf("root help should not list topics:\n%s", stdout.String())
 	}
@@ -35,7 +36,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list\n  dump")
 	assertContains(t, stdout.String(), "Other topics:\n  environment")
 	if strings.Contains(stdout.String(), "Shortcut:") {
 		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
@@ -213,4 +214,20 @@ func TestGetHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Values are printed in a format-neutral display form")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Read a field from a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
+}
+
+func TestDumpHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"dump", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Dump config as YAML")
+	assertContains(t, stdout.String(), "Usage:\n  config dump [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "KEY\n    Optional key or table path to dump")
 }

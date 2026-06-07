@@ -206,6 +206,80 @@ func TestListFailsWhenConfigFileIsNotSpecified(t *testing.T) {
 	}
 }
 
+func TestDumpPrintsTOMLAsYAML(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
+
+	err := Execute([]string{"dump", path}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "server:\n  enabled: true\n  port: 3000\ntitle: demo app\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestDumpPrintsTOMLSubtree(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nports = [3000, 3001]\nenabled = true\n")
+
+	err := Execute([]string{"dump", path, "server"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "enabled: true\nports:\n  - 3000\n  - 3001\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestDumpPrintsYAMLSubtree(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempYAML(t, "server:\n  hosts:\n    - api.example.com\n    - worker.example.com\n  enabled: true\n")
+
+	err := Execute([]string{"dump", path, "server.hosts"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "- api.example.com\n- worker.example.com\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestDumpUsesSingleArgumentAsKeyWhenConfigFileEnvIsSet(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[server]\nport = 3000\n")
+	t.Setenv("CONFIG_FILE", path)
+
+	err := Execute([]string{"dump", "server"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.String() != "port: 3000\n" {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+}
+
+func TestDumpFailsWhenConfigFileIsNotSpecified(t *testing.T) {
+	clearConfigFileEnv(t)
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"dump", "server"}, "1.2.3", &stdout, &stderr)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != "config file not specified" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestVersion(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

@@ -1,0 +1,18 @@
+Dump config as YAML
+
+Usage:
+  config dump [CONFIG_FILE] [KEY]
+  config dump --help | -h
+
+Parameters:
+  CONFIG_FILE
+    Path to the config file
+
+  KEY
+    Optional key or table path to dump
+
+Examples:
+  config dump path/to/config.toml
+  config dump path/to/config.toml database
+  config dump path/to/config.yaml server.hosts
+  config dump

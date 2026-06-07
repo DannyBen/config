@@ -74,6 +74,11 @@ type listOptions struct {
 	key        string
 }
 
+type dumpOptions struct {
+	configFile string
+	key        string
+}
+
 type usageError struct {
 	message string
 }
@@ -123,7 +128,7 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 	root.SetHelpFunc(helpPrinter("root"))
 	root.SetVersionTemplate("{{.Version}}\n")
 
-	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newHelpCommand(stdout))
+	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newHelpCommand(stdout))
 	return root
 }
 
@@ -273,6 +278,30 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 	return cmd
 }
 
+func newDumpCommand(stdout io.Writer) *cobra.Command {
+	var opts dumpOptions
+	cmd := &cobra.Command{
+		Use:   "dump [CONFIG_FILE] [KEY]",
+		Short: "Dump config as YAML",
+		Args: func(cmd *cobra.Command, args []string) error {
+			configFile, rest, err := parseCommandArgs(args, 0, 1, "usage: config dump [CONFIG_FILE] [KEY]")
+			if err != nil {
+				return err
+			}
+			opts.configFile = configFile
+			if len(rest) == 1 {
+				opts.key = rest[0]
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runDump(opts, stdout)
+		},
+	}
+	cmd.SetHelpFunc(helpPrinter("dump"))
+	return cmd
+}
+
 func newArrayCommand(stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "array COMMAND [options]",
@@ -375,7 +404,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "array", "list"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -398,7 +427,7 @@ func helpIndex() string {
 
 func commandHelpTopic(name string) (string, bool) {
 	switch name {
-	case "root", "set", "get", "unset", "delete", "array", "list":
+	case "root", "set", "get", "unset", "delete", "array", "list", "dump":
 		return name, true
 	case "array set":
 		return "array-set", true
@@ -586,6 +615,28 @@ func runList(opts listOptions, stdout io.Writer) error {
 		return err
 	}
 	fmt.Fprint(stdout, renderList(entries))
+	return nil
+}
+
+func runDump(opts dumpOptions, stdout io.Writer) error {
+	configFile, err := resolveConfigFile(opts.configFile)
+	if err != nil {
+		return err
+	}
+	doc, _, err := format.Resolve(configFile)
+	if err != nil {
+		return err
+	}
+
+	source, err := os.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+	output, err := doc.Dump(string(source), opts.key)
+	if err != nil {
+		return err
+	}
+	fmt.Fprint(stdout, output)
 	return nil
 }
 

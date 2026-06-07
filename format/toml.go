@@ -28,6 +28,10 @@ func (tomlDocument) GetIn(source, collection string, selectors []string, key str
 	return tomldoc.GetIn(source, collection, selectors, key)
 }
 
+func (tomlDocument) Dump(source, key string) (string, error) {
+	return tomldoc.Dump(source, key)
+}
+
 func (tomlDocument) Set(source, key, value string) (string, error) {
 	return tomldoc.Set(source, key, value)
 }

@@ -18,6 +18,7 @@ type Document interface {
 	DeleteIfEmpty(source, key string) (string, error)
 	Get(source, key string) (string, error)
 	GetIn(source, collection string, selectors []string, key string) (string, error)
+	Dump(source, key string) (string, error)
 	Set(source, key, value string) (string, error)
 	SetArray(source, key string, values []string) (string, error)
 	SetIn(source, collection, on, key, value string) (string, error)

@@ -420,27 +420,35 @@ func parseFeatureTranscriptDirective(t *testing.T, path string, commands *[]feat
 func parseFeatureArrowDirective(line string) (string, string, string, bool) {
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "->") {
-		return "stdout", "", strings.TrimSpace(strings.TrimPrefix(line, "->")), true
+		return "stdout", "", parseFeatureDirectiveText(strings.TrimPrefix(line, "->")), true
 	}
 	if strings.HasPrefix(line, "!->") {
-		return "stderr", "", strings.TrimSpace(strings.TrimPrefix(line, "!->")), true
+		return "stderr", "", parseFeatureDirectiveText(strings.TrimPrefix(line, "!->")), true
 	}
 	if before, after, ok := strings.Cut(line, " !->"); ok {
 		formatName := strings.TrimSpace(before)
 		if isFeatureFormat(formatName) {
-			return "stderr", formatName, strings.TrimSpace(after), true
+			return "stderr", formatName, parseFeatureDirectiveText(after), true
 		}
 	}
 	if before, after, ok := strings.Cut(line, " ->"); ok {
 		prefix := strings.TrimSpace(before)
 		if prefix == "exit" {
-			return "exit", "", strings.TrimSpace(after), true
+			return "exit", "", parseFeatureDirectiveText(after), true
 		}
 		if isFeatureFormat(prefix) {
-			return "stdout", prefix, strings.TrimSpace(after), true
+			return "stdout", prefix, parseFeatureDirectiveText(after), true
 		}
 	}
 	return "", "", "", false
+}
+
+func parseFeatureDirectiveText(text string) string {
+	text = strings.TrimRight(text, " \t")
+	if strings.HasPrefix(text, " ") {
+		return strings.TrimPrefix(text, " ")
+	}
+	return text
 }
 
 func isFeatureFormat(name string) bool {
