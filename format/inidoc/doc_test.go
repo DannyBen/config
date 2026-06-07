@@ -124,6 +124,95 @@ func TestDumpRefusesKeySectionConflict(t *testing.T) {
 	}
 }
 
+func TestSetUpdatesGlobalKey(t *testing.T) {
+	got, err := Set("title = config\n", "title", "demo")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "title = demo\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetUpdatesSectionKey(t *testing.T) {
+	source := "[server]\nport=3000\nhost = localhost\n"
+
+	got, err := Set(source, "server.port", "3001")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+
+	want := "[server]\nport= 3001\nhost = localhost\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetAppendsGlobalKey(t *testing.T) {
+	got, err := Set("title = config\n", "enabled", "true")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "title = config\nenabled = true\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetInsertsGlobalKeyBeforeFirstSection(t *testing.T) {
+	got, err := Set("title = config\n\n[server]\nhost = localhost\n", "enabled", "true")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "title = config\nenabled = true\n\n[server]\nhost = localhost\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetInsertsIntoExistingSection(t *testing.T) {
+	source := "title = config\n\n[server]\nhost = localhost\n\n[database]\nhost = db\n"
+
+	got, err := Set(source, "server.port", "3000")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+
+	want := "title = config\n\n[server]\nhost = localhost\n\nport = 3000\n[database]\nhost = db\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetAppendsMissingSection(t *testing.T) {
+	got, err := Set("title = config\n", "server.port", "3000")
+	if err != nil {
+		t.Fatalf("Set returned error: %v", err)
+	}
+	want := "title = config\n\n[server]\nport = 3000\n"
+	if got != want {
+		t.Fatalf("Set output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestSetRefusesDuplicateKeys(t *testing.T) {
+	_, err := Set("port = 3000\nport = 3001\n", "port", "3002")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestSetRefusesKeySectionConflict(t *testing.T) {
+	_, err := Set("[server]\nport = 3000\n", "server", "localhost")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != "server is a section, not a value" {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
 func TestFullLineCommentsOnly(t *testing.T) {
 	source := `
 ; comment

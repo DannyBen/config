@@ -37,7 +37,7 @@ func (iniDocument) Dump(source, key string) (any, error) {
 }
 
 func (iniDocument) Set(source, key, value string) (string, error) {
-	return "", unsupportedINI("set")
+	return inidoc.Set(source, key, value)
 }
 
 func (iniDocument) SetArray(source, key string, values []string) (string, error) {
@@ -57,7 +57,7 @@ func (iniDocument) SetInString(source, collection, on, key, value string) (strin
 }
 
 func (iniDocument) SetString(source, key, value string) (string, error) {
-	return "", unsupportedINI("set --string")
+	return inidoc.Set(source, key, value)
 }
 
 func (iniDocument) Unset(source, key string) (string, error) {
@@ -82,5 +82,5 @@ func (iniDocument) List(source, key string) ([]Entry, error) {
 }
 
 func unsupportedINI(operation string) error {
-	return fmt.Errorf("INI %s is not supported yet", operation)
+	return fmt.Errorf("INI %s is not supported", operation)
 }

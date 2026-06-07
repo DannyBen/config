@@ -12,13 +12,29 @@ type Entry struct {
 
 type document struct {
 	entries []entry
+	lines   []parsedLine
 }
 
 type entry struct {
 	section string
 	key     string
 	value   string
+	line    int
 }
+
+type parsedLine struct {
+	kind    lineKind
+	section string
+	key     string
+}
+
+type lineKind int
+
+const (
+	lineOther lineKind = iota
+	lineSection
+	lineEntry
+)
 
 func Get(source, path string) (string, error) {
 	section, key, err := parsePath(path)
@@ -75,6 +91,22 @@ func List(source, path string) ([]Entry, error) {
 	return doc.list(section, key)
 }
 
+func Set(source, path, value string) (string, error) {
+	section, key, err := parsePath(path)
+	if err != nil {
+		return "", err
+	}
+	if key == "" {
+		return "", fmt.Errorf("INI set requires a key")
+	}
+
+	doc, err := parse(source)
+	if err != nil {
+		return "", err
+	}
+	return doc.set(source, section, key, value)
+}
+
 func (doc document) list(section, key string) ([]Entry, error) {
 	var entries []Entry
 	if section == "" && key != "" {
@@ -117,6 +149,97 @@ func (doc document) list(section, key string) ([]Entry, error) {
 		return nil, fmt.Errorf("%s is not set", formatPath(section, key))
 	}
 	return entries, nil
+}
+
+func (doc document) set(source, section, key, value string) (string, error) {
+	if section == "" && doc.hasSection(key) {
+		return "", fmt.Errorf("%s is a section, not a value", formatPath("", key))
+	}
+
+	matches := doc.findEntries(section, key)
+	if len(matches) > 1 {
+		return "", fmt.Errorf("%s has multiple values", formatPath(section, key))
+	}
+	if len(matches) == 1 {
+		return replaceLineValue(source, matches[0].line, value)
+	}
+	if section == "" {
+		return doc.insertGlobalValue(source, key, value), nil
+	}
+	return doc.insertSectionValue(source, section, key, value)
+}
+
+func (doc document) findEntries(section, key string) []entry {
+	var matches []entry
+	for _, entry := range doc.entries {
+		if entry.section == section && entry.key == key {
+			matches = append(matches, entry)
+		}
+	}
+	return matches
+}
+
+func (doc document) hasSection(section string) bool {
+	for _, line := range doc.lines {
+		if line.kind == lineSection && line.section == section {
+			return true
+		}
+	}
+	return false
+}
+
+func (doc document) insertGlobalValue(source, key, value string) string {
+	firstSection := -1
+	for i, line := range doc.lines {
+		if line.kind == lineSection {
+			firstSection = i
+			break
+		}
+	}
+	if firstSection == -1 {
+		return appendGlobal(source, key, value)
+	}
+
+	lines, trailing := splitLines(source)
+	insertAt := firstSection
+	for insertAt > 0 && strings.TrimSpace(lines[insertAt-1]) == "" {
+		insertAt--
+	}
+	newLine := key + " = " + value
+	lines = append(lines[:insertAt], append([]string{newLine}, lines[insertAt:]...)...)
+	return joinLines(lines, trailing)
+}
+
+func (doc document) insertSectionValue(source, section, key, value string) (string, error) {
+	start, end := doc.sectionBounds(section)
+	if start == -1 {
+		return appendSection(source, section, key, value), nil
+	}
+
+	lines, trailing := splitLines(source)
+	newLine := key + " = " + value
+	lines = append(lines[:end], append([]string{newLine}, lines[end:]...)...)
+	return joinLines(lines, trailing), nil
+}
+
+func (doc document) sectionBounds(section string) (int, int) {
+	start := -1
+	end := -1
+	for i, line := range doc.lines {
+		if line.kind != lineSection {
+			continue
+		}
+		if start == -1 {
+			if line.section == section {
+				start = i
+				end = len(doc.lines)
+			}
+			continue
+		}
+		end = i
+		break
+	}
+	return start, end
 }
 
 func (doc document) dump(section, key string) (any, error) {
@@ -202,10 +325,11 @@ func (doc document) dumpAll() (map[string]any, error) {
 func parse(source string) (document, error) {
 	var doc document
 	var section string
-	lines := strings.Split(source, "\n")
+	lines, _ := splitLines(source)
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, ";") {
+			doc.lines = append(doc.lines, parsedLine{kind: lineOther})
 			continue
 		}
 
@@ -218,6 +342,7 @@ func parse(source string) (document, error) {
 				return document{}, fmt.Errorf("empty INI section on line %d", i+1)
 			}
 			section = name
+			doc.lines = append(doc.lines, parsedLine{kind: lineSection, section: section})
 			continue
 		}
 
@@ -230,13 +355,73 @@ func parse(source string) (document, error) {
 		if key == "" {
 			return document{}, fmt.Errorf("empty INI key on line %d", i+1)
 		}
+		doc.lines = append(doc.lines, parsedLine{kind: lineEntry, section: section, key: key})
 		doc.entries = append(doc.entries, entry{
 			section: section,
 			key:     key,
 			value:   strings.TrimSpace(value),
+			line:    i,
 		})
 	}
 	return doc, nil
+}
+
+func replaceLineValue(source string, index int, value string) (string, error) {
+	lines, trailing := splitLines(source)
+	if index < 0 || index >= len(lines) {
+		return "", fmt.Errorf("INI key line is not editable")
+	}
+	before, _, ok := strings.Cut(lines[index], "=")
+	if !ok {
+		lines[index] = strings.TrimSpace(before) + " = " + value
+		return joinLines(lines, trailing), nil
+	}
+	lines[index] = before + "= " + value
+	return joinLines(lines, trailing), nil
+}
+
+func appendGlobal(source, key, value string) string {
+	line := key + " = " + value
+	if source == "" {
+		return line + "\n"
+	}
+	if strings.HasSuffix(source, "\n") {
+		return source + line + "\n"
+	}
+	return source + "\n" + line + "\n"
+}
+
+func appendSection(source, section, key, value string) string {
+	block := "[" + section + "]\n" + key + " = " + value + "\n"
+	if source == "" {
+		return block
+	}
+	if strings.HasSuffix(source, "\n\n") {
+		return source + block
+	}
+	if strings.HasSuffix(source, "\n") {
+		return source + "\n" + block
+	}
+	return source + "\n\n" + block
+}
+
+func splitLines(source string) ([]string, bool) {
+	trailing := strings.HasSuffix(source, "\n")
+	if trailing {
+		source = strings.TrimSuffix(source, "\n")
+	}
+	if source == "" {
+		return nil, trailing
+	}
+	return strings.Split(source, "\n"), trailing
+}
+
+func joinLines(lines []string, trailing bool) string {
+	out := strings.Join(lines, "\n")
+	if trailing || out != "" {
+		out += "\n"
+	}
+	return out
 }
 
 func parsePath(path string) (string, string, error) {
