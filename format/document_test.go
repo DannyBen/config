@@ -51,6 +51,24 @@ func TestResolveYAML(t *testing.T) {
 	}
 }
 
+func TestResolveJSON(t *testing.T) {
+	doc, name, err := Resolve("config.json")
+
+	if err != nil {
+		t.Fatalf("Resolve returned error: %v", err)
+	}
+	if name != "json" {
+		t.Fatalf("name = %q, want json", name)
+	}
+	entries, err := doc.List(`{"server":{"port":3000}}`, "server")
+	if err != nil {
+		t.Fatalf("List returned error: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Key != "server.port" || entries[0].Value != "3000" {
+		t.Fatalf("entries = %#v", entries)
+	}
+}
+
 func TestResolveUnsupportedFormat(t *testing.T) {
 	_, _, err := Resolve("config.conf")
 

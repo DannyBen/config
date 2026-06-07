@@ -42,6 +42,32 @@ caption = "API"
 tags = ["dev", "api"]
 ```
 
+### JSON
+
+```json
+{
+  "title": "config",
+  "style": {
+    "color": "red",
+    "size": 14
+  },
+  "sections": [
+    {
+      "caption": "Getting Started",
+      "tags": ["beginners", "tutorial"]
+    },
+    {
+      "caption": "Installation",
+      "tags": ["beginners", "tutorial"]
+    },
+    {
+      "caption": "API",
+      "tags": ["dev", "api"]
+    }
+  ]
+}
+```
+
 ## Commands
 
 ```shell

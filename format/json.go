@@ -1,0 +1,86 @@
+package format
+
+import (
+	"fmt"
+
+	"github.com/dannyben/config/format/jsondoc"
+)
+
+type jsonDocument struct{}
+
+func (jsonDocument) ArrayAdd(source, key string, values []string) (string, error) {
+	return "", unsupportedJSON("array add")
+}
+
+func (jsonDocument) ArrayDel(source, key string, values []string) (string, error) {
+	return "", unsupportedJSON("array del")
+}
+
+func (jsonDocument) Delete(source, key string, selectors []string) (string, error) {
+	return "", unsupportedJSON("delete")
+}
+
+func (jsonDocument) DeleteIfEmpty(source, key string) (string, error) {
+	return "", unsupportedJSON("delete --if-empty")
+}
+
+func (jsonDocument) Get(source, key string) (string, error) {
+	return "", unsupportedJSON("get")
+}
+
+func (jsonDocument) GetIn(source, collection string, selectors []string, key string) (string, error) {
+	return "", unsupportedJSON("get --in")
+}
+
+func (jsonDocument) Dump(source, key string) (any, error) {
+	return nil, unsupportedJSON("dump")
+}
+
+func (jsonDocument) Set(source, key, value string) (string, error) {
+	return "", unsupportedJSON("set")
+}
+
+func (jsonDocument) SetArray(source, key string, values []string) (string, error) {
+	return "", unsupportedJSON("array set")
+}
+
+func (jsonDocument) SetIn(source, collection, on, key, value string) (string, error) {
+	return "", unsupportedJSON("set --in")
+}
+
+func (jsonDocument) SetInArray(source, collection, on, key string, values []string) (string, error) {
+	return "", unsupportedJSON("set --in array")
+}
+
+func (jsonDocument) SetInString(source, collection, on, key, value string) (string, error) {
+	return "", unsupportedJSON("set --in --string")
+}
+
+func (jsonDocument) SetString(source, key, value string) (string, error) {
+	return "", unsupportedJSON("set --string")
+}
+
+func (jsonDocument) Unset(source, key string) (string, error) {
+	return "", unsupportedJSON("unset")
+}
+
+func (jsonDocument) UnsetIn(source, collection string, selectors []string, key string) (string, error) {
+	return "", unsupportedJSON("unset --in")
+}
+
+func (jsonDocument) List(source, key string) ([]Entry, error) {
+	entries, err := jsondoc.List(source, key)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]Entry, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, Entry{Key: entry.Key, Value: entry.Value})
+	}
+	return out, nil
+}
+
+func unsupportedJSON(operation string) error {
+	return fmt.Errorf("JSON %s is not supported yet", operation)
+}
