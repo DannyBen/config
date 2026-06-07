@@ -45,7 +45,7 @@ func (jsonDocument) SetArray(source, key string, values []string) (string, error
 }
 
 func (jsonDocument) SetIn(source, collection, on, key, value string) (string, error) {
-	return "", unsupportedJSON("set --in")
+	return jsondoc.SetIn(source, collection, on, key, value)
 }
 
 func (jsonDocument) SetInArray(source, collection, on, key string, values []string) (string, error) {
@@ -53,7 +53,7 @@ func (jsonDocument) SetInArray(source, collection, on, key string, values []stri
 }
 
 func (jsonDocument) SetInString(source, collection, on, key, value string) (string, error) {
-	return "", unsupportedJSON("set --in --string")
+	return jsondoc.SetInString(source, collection, on, key, value)
 }
 
 func (jsonDocument) SetString(source, key, value string) (string, error) {

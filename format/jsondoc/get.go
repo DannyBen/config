@@ -67,8 +67,8 @@ func GetIn(source, collectionPath string, rawSelectors []string, path string) (s
 	if err != nil {
 		return "", err
 	}
-	record, ok := records[index].(object)
-	if !ok {
+	record := records[index]
+	if !isRecord(record) {
 		return "", fmt.Errorf("%s.%d is not a record", formatPath(collection), index)
 	}
 	value, err = resolvePath(record, key)
@@ -96,11 +96,20 @@ func renderGetValue(value any, path []string) (string, error) {
 
 func isRecordArray(values []any) bool {
 	for _, value := range values {
-		if _, ok := value.(object); ok {
+		if isRecord(value) {
 			return true
 		}
 	}
 	return false
+}
+
+func isRecord(value any) bool {
+	switch value.(type) {
+	case map[string]any, object:
+		return true
+	default:
+		return false
+	}
 }
 
 func flowArray(values []any) string {
@@ -143,11 +152,10 @@ func cutSelector(value string) (string, string, bool) {
 func selectedRecordIndex(records []any, collectionPath []string, selectors []selector) (int, error) {
 	var matches []int
 	for i, value := range records {
-		record, ok := value.(object)
-		if !ok {
+		if !isRecord(value) {
 			return 0, fmt.Errorf("%s.%d is not a record", formatPath(collectionPath), i)
 		}
-		matched, err := recordMatches(record, selectors)
+		matched, err := recordMatches(value, selectors)
 		if err != nil {
 			return 0, err
 		}
@@ -167,7 +175,7 @@ func selectedRecordIndex(records []any, collectionPath []string, selectors []sel
 	}
 }
 
-func recordMatches(record object, selectors []selector) (bool, error) {
+func recordMatches(record any, selectors []selector) (bool, error) {
 	for _, selector := range selectors {
 		value, err := resolvePath(record, selector.path)
 		if err != nil {

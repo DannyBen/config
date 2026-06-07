@@ -32,6 +32,27 @@ name = "backend"
 port = 4000
 ```
 
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "name": "api",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "port": 3001
+    },
+    {
+      "name": "backend",
+      "port": 4000
+    }
+  ]
+}
+```
+
 ## Commands
 
 ```shell
@@ -82,4 +103,29 @@ port = 4000
 [[servers]]
 name = "cache"
 port = 5000
+```
+
+### JSON
+
+```json
+{
+  "servers": [
+    {
+      "name": "api",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "port": 3002
+    },
+    {
+      "name": "app",
+      "port": 4000
+    },
+    {
+      "name": "cache",
+      "port": 5000
+    }
+  ]
+}
 ```
