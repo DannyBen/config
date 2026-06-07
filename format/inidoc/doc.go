@@ -123,6 +123,41 @@ func Unset(source, path string) (string, error) {
 	return doc.unset(source, section, key)
 }
 
+func Delete(source, path string, selectors []string) (string, error) {
+	if len(selectors) != 0 {
+		return "", fmt.Errorf("INI delete --on is not supported")
+	}
+	section, key, err := parsePath(path)
+	if err != nil {
+		return "", err
+	}
+	if section != "" || key == "" {
+		return "", fmt.Errorf("%s is a value, use unset to remove fields", formatPath(section, key))
+	}
+
+	doc, err := parse(source)
+	if err != nil {
+		return "", err
+	}
+	return doc.deleteSection(source, key, false)
+}
+
+func DeleteIfEmpty(source, path string) (string, error) {
+	section, key, err := parsePath(path)
+	if err != nil {
+		return "", err
+	}
+	if section != "" || key == "" {
+		return "", fmt.Errorf("%s is a value, use unset to remove fields", formatPath(section, key))
+	}
+
+	doc, err := parse(source)
+	if err != nil {
+		return "", err
+	}
+	return doc.deleteSection(source, key, true)
+}
+
 func (doc document) list(section, key string) ([]Entry, error) {
 	var entries []Entry
 	if section == "" && key != "" {
@@ -198,6 +233,41 @@ func (doc document) unset(source, section, key string) (string, error) {
 		return "", fmt.Errorf("%s has multiple values", formatPath(section, key))
 	}
 	return deleteLine(source, matches[0].line)
+}
+
+func (doc document) deleteSection(source, section string, onlyIfEmpty bool) (string, error) {
+	if len(doc.findEntries("", section)) != 0 {
+		return "", fmt.Errorf("%s is a value, use unset to remove fields", formatPath("", section))
+	}
+
+	start, end := doc.sectionBounds(section)
+	if start == -1 {
+		if onlyIfEmpty {
+			return source, nil
+		}
+		return "", fmt.Errorf("%s is not set", formatPath("", section))
+	}
+	if onlyIfEmpty && doc.sectionHasEntries(section) {
+		return source, nil
+	}
+
+	lines, trailing := splitLines(source)
+	removeStart := start
+	removeEnd := end
+	for removeEnd < len(lines) && strings.TrimSpace(lines[removeEnd]) == "" {
+		removeEnd++
+	}
+	lines = append(lines[:removeStart], lines[removeEnd:]...)
+	return joinLines(lines, trailing), nil
+}
+
+func (doc document) sectionHasEntries(section string) bool {
+	for _, entry := range doc.entries {
+		if entry.section == section {
+			return true
+		}
+	}
+	return false
 }
 
 func (doc document) findEntries(section, key string) []entry {

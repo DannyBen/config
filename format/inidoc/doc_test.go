@@ -262,6 +262,90 @@ func TestUnsetRefusesSectionAsValue(t *testing.T) {
 	}
 }
 
+func TestDeleteSection(t *testing.T) {
+	source := "title = config\n\n[server]\nhost = localhost\nport = 3000\n\n[database]\nhost = db\n"
+
+	got, err := Delete(source, "server", nil)
+	if err != nil {
+		t.Fatalf("Delete returned error: %v", err)
+	}
+
+	want := "title = config\n\n[database]\nhost = db\n"
+	if got != want {
+		t.Fatalf("Delete output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestDeleteFirstSection(t *testing.T) {
+	source := "[server]\nhost = localhost\n\n[database]\nhost = db\n"
+
+	got, err := Delete(source, "server", nil)
+	if err != nil {
+		t.Fatalf("Delete returned error: %v", err)
+	}
+
+	want := "[database]\nhost = db\n"
+	if got != want {
+		t.Fatalf("Delete output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestDeleteIfEmptySection(t *testing.T) {
+	source := "title = config\n\n[server]\n\n[database]\nhost = db\n"
+
+	got, err := DeleteIfEmpty(source, "server")
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+
+	want := "title = config\n\n[database]\nhost = db\n"
+	if got != want {
+		t.Fatalf("DeleteIfEmpty output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestDeleteIfEmptyKeepsNonEmptySection(t *testing.T) {
+	source := "[server]\nhost = localhost\n"
+	got, err := DeleteIfEmpty(source, "server")
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+	if got != source {
+		t.Fatalf("DeleteIfEmpty = %q, want %q", got, source)
+	}
+}
+
+func TestDeleteIfEmptyKeepsMissingSection(t *testing.T) {
+	source := "[server]\nhost = localhost\n"
+	got, err := DeleteIfEmpty(source, "missing")
+	if err != nil {
+		t.Fatalf("DeleteIfEmpty returned error: %v", err)
+	}
+	if got != source {
+		t.Fatalf("DeleteIfEmpty = %q, want %q", got, source)
+	}
+}
+
+func TestDeleteRefusesValue(t *testing.T) {
+	_, err := Delete("[server]\nhost = localhost\n", "server.host", nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != "server.host is a value, use unset to remove fields" {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
+func TestDeleteRefusesOnSelectors(t *testing.T) {
+	_, err := Delete("[server]\nhost = localhost\n", "server", []string{"name:api"})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != "INI delete --on is not supported" {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
 func TestFullLineCommentsOnly(t *testing.T) {
 	source := `
 ; comment

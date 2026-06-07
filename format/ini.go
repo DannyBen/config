@@ -17,11 +17,11 @@ func (iniDocument) ArrayDel(source, key string, values []string) (string, error)
 }
 
 func (iniDocument) Delete(source, key string, selectors []string) (string, error) {
-	return "", unsupportedINI("delete")
+	return inidoc.Delete(source, key, selectors)
 }
 
 func (iniDocument) DeleteIfEmpty(source, key string) (string, error) {
-	return "", unsupportedINI("delete --empty")
+	return inidoc.DeleteIfEmpty(source, key)
 }
 
 func (iniDocument) Get(source, key string) (string, error) {

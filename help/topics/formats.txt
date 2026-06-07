@@ -29,9 +29,12 @@ The `config` command supports TOML, YAML, JSON, and INI files.
     not allowed.
 
   INI
-    INI support is read-only for now. Full-line comments starting with `#` or
-    `;` are ignored. Inline comments are not parsed, so `port = 3000 # dev`
-    has the value `3000 # dev`.
+    INI support is limited to global keys and one section level. `get`, `list`,
+    `dump`, `set`, `unset`, and section `delete` are supported. Array
+    operations and record selectors are not supported.
+
+    Full-line comments starting with `#` or `;` are ignored. Inline comments
+    are not parsed, so `port = 3000 # dev` has the value `3000 # dev`.
 
 **INI paths**
 
