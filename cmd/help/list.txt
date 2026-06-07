@@ -2,7 +2,6 @@ Show config values
 
 Usage:
   config list [CONFIG_FILE] [KEY]
-  config ls [CONFIG_FILE] [KEY]
   config list --help | -h
 
 Aliases:
@@ -24,4 +23,5 @@ Examples:
   config list path/to/config.toml database
   config list path/to/config.toml database.port
   config list --color
+  config ls --color
   config list

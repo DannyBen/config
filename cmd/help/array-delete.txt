@@ -2,7 +2,6 @@ Remove values from a scalar array
 
 Usage:
   config array delete [CONFIG_FILE] KEY VALUE... [options]
-  config array del [CONFIG_FILE] KEY VALUE... [options]
   config array delete --help | -h
 
 Aliases:
@@ -35,3 +34,4 @@ Options:
 
 Examples:
   config array delete roots /tmp
+  config array del roots /tmp /var/tmp

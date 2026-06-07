@@ -2,7 +2,6 @@ Delete a config container
 
 Usage:
   config delete [CONFIG_FILE] KEY [options]
-  config del [CONFIG_FILE] KEY [options]
   config delete --help | -h
 
 Aliases:
@@ -34,5 +33,6 @@ Options:
 Examples:
   config delete path/to/config.toml style
   config delete servers.1
+  config del servers.1
   config delete servers --on name:web
   config delete tui.keymap.composer --if-empty
