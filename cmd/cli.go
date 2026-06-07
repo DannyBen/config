@@ -131,8 +131,9 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 	root.SetErr(stderr)
 	root.SetHelpFunc(helpPrinter("root"))
 	root.SetVersionTemplate("{{.Version}}\n")
+	root.CompletionOptions.DisableDefaultCmd = true
 
-	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newHelpCommand(stdout))
+	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newCompletionCommand(stdout), newHelpCommand(stdout))
 	return root
 }
 
@@ -307,6 +308,24 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 	return cmd
 }
 
+func newCompletionCommand(stdout io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "completion SHELL",
+		Short: "Generate shell completion scripts",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return usageError{"usage: config completion SHELL"}
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runCompletion(cmd.Root(), args[0], stdout)
+		},
+	}
+	cmd.SetHelpFunc(helpPrinter("completion"))
+	return cmd
+}
+
 func newArrayCommand(stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "array COMMAND [options]",
@@ -409,7 +428,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump", "completion"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -432,7 +451,7 @@ func helpIndex() string {
 
 func commandHelpTopic(name string) (string, bool) {
 	switch name {
-	case "root", "set", "get", "unset", "delete", "array", "list", "dump":
+	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "completion":
 		return name, true
 	case "array set":
 		return "array-set", true
@@ -647,6 +666,19 @@ func runDump(opts dumpOptions, stdout io.Writer) error {
 	}
 	fmt.Fprint(stdout, output)
 	return nil
+}
+
+func runCompletion(root *cobra.Command, shell string, stdout io.Writer) error {
+	switch shell {
+	case "bash":
+		return root.GenBashCompletionV2(stdout, true)
+	case "zsh":
+		return root.GenZshCompletion(stdout)
+	case "fish":
+		return root.GenFishCompletion(stdout, true)
+	default:
+		return fmt.Errorf("unsupported shell %q", shell)
+	}
 }
 
 func renderDump(value any, asJSON bool) (string, error) {

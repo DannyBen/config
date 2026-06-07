@@ -12,4 +12,5 @@ Commands:
   array   Manipulate scalar arrays
   list    Show config values
   dump    Dump config data
+  completion  Generate shell completion scripts
   help    Show command help or topic help
