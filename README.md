@@ -2,7 +2,7 @@
 <img src='config.svg' width=300>
 </div>
 
-# Config
+# Config - CLI for Manipulating Config Files
 
 ![repocard](https://repocard.dannyben.com/svg/config.svg)
 
