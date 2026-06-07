@@ -4,10 +4,14 @@ Refuse unsetting mappings.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 database:
   port: 5432
 ```
+
+### TOML
 
 ```toml
 [database]

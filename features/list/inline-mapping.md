@@ -4,6 +4,8 @@ List flattens inline mappings without expanding their source form.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: inline mapping demo
 
@@ -11,6 +13,8 @@ database:
   host: localhost
   pool: {min: 1, max: 10}
 ```
+
+### TOML
 
 ```toml
 title = "inline mapping demo"

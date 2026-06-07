@@ -4,6 +4,8 @@ Refuse unsafe or invalid delete targets.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: delete refusals demo
 
@@ -16,6 +18,8 @@ style:
   color: blue
   font: arial
 ```
+
+### TOML
 
 ```toml
 title = "delete refusals demo"

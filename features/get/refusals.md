@@ -4,6 +4,8 @@ Fail on invalid key
 
 ## Source Files
 
+### YAML
+
 ```yaml
 user:
   name: root
@@ -18,6 +20,8 @@ servers:
 - id: api
   port: 4000
 ```
+
+### TOML
 
 ```toml
 [user]

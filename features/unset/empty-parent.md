@@ -6,12 +6,16 @@ table headers are structural containers for following assignments.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: demo
 
 server:
   port: 3000
 ```
+
+### TOML
 
 ```toml
 title = "demo"
@@ -28,11 +32,15 @@ config unset server.port
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: demo
 
 server:
 ```
+
+### TOML
 
 ```toml
 title = "demo"

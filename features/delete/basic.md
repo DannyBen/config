@@ -4,6 +4,8 @@ Delete an entire record collection.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: demo
 
@@ -15,6 +17,8 @@ servers:
 
 owner: ops
 ```
+
+### TOML
 
 ```toml
 title = "demo"
@@ -39,11 +43,15 @@ config delete servers
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: demo
 
 owner: ops
 ```
+
+### TOML
 
 ```toml
 title = "demo"

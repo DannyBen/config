@@ -4,12 +4,16 @@ List refuses invalid input files.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: invalid YAML demo
 style:
   font: arial
   broken: [arial
 ```
+
+### TOML
 
 ```toml
 title = "invalid TOML demo"

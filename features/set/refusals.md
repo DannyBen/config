@@ -4,10 +4,14 @@ Refuse replacing mappings with scalar values.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 database:
   port: 5432
 ```
+
+### TOML
 
 ```toml
 [database]

@@ -4,6 +4,8 @@ Basic set operations
 
 ## Source Files
 
+### YAML
+
 ```yaml
 servers:
   app.example.com:
@@ -11,6 +13,8 @@ servers:
   db.example.com:
     port: 5432
 ```
+
+### TOML
 
 ```toml
 [servers."app.example.com"]

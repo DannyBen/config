@@ -4,6 +4,8 @@ Delete one selected record from a record collection.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 servers:
   - name: api
@@ -12,6 +14,8 @@ servers:
     port: 3001
     host: worker.local
 ```
+
+### TOML
 
 ```toml
 title = "delete array record demo"
@@ -35,11 +39,15 @@ config delete servers --on name:worker
 
 ## Result Files
 
+### YAML
+
 ```yaml
 servers:
   - name: api
     port: 3000
 ```
+
+### TOML
 
 ```toml
 title = "delete array record demo"

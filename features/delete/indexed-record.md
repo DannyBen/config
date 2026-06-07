@@ -4,6 +4,8 @@ Delete one record by index.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: delete indexed record demo
 
@@ -18,6 +20,8 @@ servers:
     host: backup.local
     port: 3002
 ```
+
+### TOML
 
 ```toml
 title = "delete array record demo"
@@ -46,6 +50,8 @@ config delete servers.1
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: delete indexed record demo
 
@@ -57,6 +63,8 @@ servers:
     host: backup.local
     port: 3002
 ```
+
+### TOML
 
 ```toml
 title = "delete array record demo"

@@ -6,6 +6,8 @@ Existing flow arrays stay flow style until they grow to five values.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: yaml
 tags: [dev, stage]
@@ -13,6 +15,8 @@ ports:
   - 3000
   - 4000
 ```
+
+### TOML
 
 ```toml
 title = "toml"
@@ -29,6 +33,8 @@ config array add ports 5000
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: yaml
 tags:
@@ -42,6 +48,8 @@ ports:
   - 4000
   - 5000
 ```
+
+### TOML
 
 ```toml
 title = "toml"

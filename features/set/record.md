@@ -4,6 +4,8 @@ Set updates or creates one selected record in a sequence of records.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 servers:
   - name: api
@@ -13,6 +15,8 @@ servers:
   - name: backend
     port: 4000
 ```
+
+### TOML
 
 ```toml
 [[servers]]
@@ -46,6 +50,8 @@ config set servers.3.port 5000
 
 ## Result Files
 
+### YAML
+
 ```yaml
 servers:
   - name: api
@@ -57,6 +63,8 @@ servers:
   - name: cache
     port: 5000
 ```
+
+### TOML
 
 ```toml
 [[servers]]

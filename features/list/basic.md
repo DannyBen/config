@@ -4,6 +4,8 @@ Basic set operations
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: config
 style:
@@ -18,6 +20,8 @@ sections:
 - caption: API
   tags: [dev, api]
 ```
+
+### TOML
 
 ```toml
 title = "config"

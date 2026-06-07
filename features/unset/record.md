@@ -4,6 +4,8 @@ Unset a scalar field from a selected record.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: unset record demo
 servers:
@@ -14,6 +16,8 @@ servers:
     port: 3001
     host: worker.local
 ```
+
+### TOML
 
 ```toml
 title = "unset record demo"
@@ -38,6 +42,8 @@ config unset servers.0.host
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: unset record demo
 servers:
@@ -46,6 +52,8 @@ servers:
   - name: worker
     host: worker.local
 ```
+
+### TOML
 
 ```toml
 title = "unset record demo"

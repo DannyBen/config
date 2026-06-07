@@ -4,12 +4,16 @@ Dump config data as YAML.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: config
 style:
   color: red
   size: 14
 ```
+
+### TOML
 
 ```toml
 title = "config"

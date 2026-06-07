@@ -5,6 +5,8 @@ treated as an already-clean state.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 tui:
   keymap:
@@ -13,6 +15,8 @@ tui:
     editor:
       insert_newline: enter
 ```
+
+### TOML
 
 ```toml
 tui.keymap.composer.submit = "tab"
@@ -36,12 +40,16 @@ config delete tui.keymap.editor --if-empty
 
 ## Result Files
 
+### YAML
+
 ```yaml
 tui:
   keymap:
     composer:
       submit: tab
 ```
+
+### TOML
 
 ```toml
 tui.keymap.composer.submit = "tab"

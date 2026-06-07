@@ -5,10 +5,14 @@ Missing keys are treated as an already-clean state.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 submit: tab
 queue: alt-q
 ```
+
+### TOML
 
 ```toml
 submit = "tab"
@@ -24,9 +28,13 @@ config unset missing --if-exists
 
 ## Result Files
 
+### YAML
+
 ```yaml
 queue: alt-q
 ```
+
+### TOML
 
 ```toml
 queue = "alt-q"

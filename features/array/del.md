@@ -5,10 +5,14 @@ arrays, and deletes the key when no values remain.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 roots: ["$HOME/.cache", /tmp]
 extra: [/var/tmp]
 ```
+
+### TOML
 
 ```toml
 roots = ["$HOME/.cache", "/tmp"]
@@ -25,9 +29,13 @@ config array del absent /tmp
 
 ## Result Files
 
+### YAML
+
 ```yaml
 roots: [$HOME/.cache]
 ```
+
+### TOML
 
 ```toml
 roots = ["$HOME/.cache"]

@@ -4,6 +4,8 @@ Get values from arrays of hashes
 
 ## Source Files
 
+### YAML
+
 ```yaml
 servers:
   - name: api
@@ -13,6 +15,8 @@ servers:
     host: worker.local
     port: 3001
 ```
+
+### TOML
 
 ```toml
 [[servers]]

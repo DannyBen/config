@@ -4,9 +4,13 @@ Basic set operations
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: demo app
 ```
+
+### TOML
 
 ```toml
 title = "demo app"
@@ -22,12 +26,16 @@ config set server.port "nesting works"
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: update works
 version: insert works
 server:
   port: nesting works
 ```
+
+### TOML
 
 ```toml
 title = "update works"

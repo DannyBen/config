@@ -4,6 +4,8 @@ Delete a mapping.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: delete mapping demo
 
@@ -14,6 +16,8 @@ style:
   color: blue
   font: arial
 ```
+
+### TOML
 
 ```toml
 title = "delete mapping demo"
@@ -34,12 +38,16 @@ config delete style
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: delete mapping demo
 
 server:
   port: 3000
 ```
+
+### TOML
 
 ```toml
 title = "delete mapping demo"

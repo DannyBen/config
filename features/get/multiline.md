@@ -4,6 +4,8 @@ Get prints multiline string values as their resolved text.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: demo app
 message: |-
@@ -13,6 +15,8 @@ literal: |-
   alpha
   beta
 ```
+
+### TOML
 
 ```toml
 title = "demo app"

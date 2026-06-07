@@ -4,9 +4,13 @@ Set preserves types
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: yaml
 ```
+
+### TOML
 
 ```toml
 title = "toml"
@@ -30,6 +34,8 @@ config set string-date 2024-01-13 --string
 
 ## Result Files
 
+### YAML
+
 ```yaml
 title: yaml
 bool: true
@@ -44,6 +50,8 @@ string-fallback: localhost
 string-number: "1.0"
 string-date: "2024-01-13"
 ```
+
+### TOML
 
 ```toml
 title = "toml"

@@ -4,6 +4,8 @@ Set inserts repeated missing values near an existing empty TOML table.
 
 ## Source Files
 
+### TOML
+
 ```toml
 title = "demo"
 
@@ -22,6 +24,8 @@ config set tui.keymap.editor.insert_newline enter
 ```
 
 ## Result Files
+
+### TOML
 
 ```toml
 title = "demo"

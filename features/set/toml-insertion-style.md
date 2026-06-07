@@ -4,6 +4,8 @@ Set uses nearby TOML structure as a style hint when inserting nested paths.
 
 ## Source Files
 
+### TOML
+
 ```toml
 root = "demo"
 service.api.port = 9000
@@ -36,6 +38,8 @@ config set cache.redis.port 6379
 ```
 
 ## Result Files
+
+### TOML
 
 ```toml
 root = "demo"

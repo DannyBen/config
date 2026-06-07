@@ -4,10 +4,14 @@ Set uses double dots to address literal dots in keys.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 network:
   name: public
 ```
+
+### TOML
 
 ```toml
 [network]
@@ -22,11 +26,15 @@ config set network.public..port 3000
 
 ## Result Files
 
+### YAML
+
 ```yaml
 network:
   name: public
   public.port: 3000
 ```
+
+### TOML
 
 ```toml
 [network]

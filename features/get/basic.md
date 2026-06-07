@@ -4,6 +4,8 @@ Basic set operations
 
 ## Source Files
 
+### YAML
+
 ```yaml
 title: demo app
 
@@ -19,6 +21,8 @@ database:
   host: &host localhost
   replica: *host
 ```
+
+### TOML
 
 ```toml
 title = "demo app"

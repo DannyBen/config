@@ -4,6 +4,8 @@ Set creates missing parents through YAML sequence indexes.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 - name: admin
 - name: user
@@ -18,6 +20,8 @@ config set auth.type basic --on name:user
 ```
 
 ## Result Files
+
+### YAML
 
 ```yaml
 - name: admin

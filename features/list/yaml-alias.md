@@ -4,6 +4,8 @@ List resolves YAML aliases.
 
 ## Source Files
 
+### YAML
+
 ```yaml
 defaults: &defaults
   host: localhost
