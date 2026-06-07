@@ -28,6 +28,13 @@ name = "public"
 }
 ```
 
+### INI
+
+```ini
+[network]
+name = public
+```
+
 ## Commands
 
 ```shell
@@ -61,4 +68,12 @@ name = "public"
     "public.port": 3000
   }
 }
+```
+
+### INI
+
+```ini
+[network]
+name = public
+public.port = 3000
 ```

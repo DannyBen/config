@@ -24,6 +24,12 @@ title = "demo app"
 }
 ```
 
+### INI
+
+```ini
+title = demo app
+```
+
 ## Commands
 
 ```shell
@@ -63,4 +69,14 @@ port = "nesting works"
   "title": "update works",
   "version": "insert works"
 }
+```
+
+### INI
+
+```ini
+title = update works
+version = insert works
+
+[server]
+port = nesting works
 ```

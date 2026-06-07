@@ -61,7 +61,7 @@ func (iniDocument) SetString(source, key, value string) (string, error) {
 }
 
 func (iniDocument) Unset(source, key string) (string, error) {
-	return "", unsupportedINI("unset")
+	return inidoc.Unset(source, key)
 }
 
 func (iniDocument) UnsetIn(source, collection string, selectors []string, key string) (string, error) {

@@ -107,6 +107,22 @@ func Set(source, path, value string) (string, error) {
 	return doc.set(source, section, key, value)
 }
 
+func Unset(source, path string) (string, error) {
+	section, key, err := parsePath(path)
+	if err != nil {
+		return "", err
+	}
+	if key == "" {
+		return "", fmt.Errorf("INI unset requires a key")
+	}
+
+	doc, err := parse(source)
+	if err != nil {
+		return "", err
+	}
+	return doc.unset(source, section, key)
+}
+
 func (doc document) list(section, key string) ([]Entry, error) {
 	var entries []Entry
 	if section == "" && key != "" {
@@ -167,6 +183,21 @@ func (doc document) set(source, section, key, value string) (string, error) {
 		return doc.insertGlobalValue(source, key, value), nil
 	}
 	return doc.insertSectionValue(source, section, key, value)
+}
+
+func (doc document) unset(source, section, key string) (string, error) {
+	if section == "" && doc.hasSection(key) {
+		return "", fmt.Errorf("%s is a section, not a value", formatPath("", key))
+	}
+
+	matches := doc.findEntries(section, key)
+	if len(matches) == 0 {
+		return "", fmt.Errorf("%s is not set", formatPath(section, key))
+	}
+	if len(matches) > 1 {
+		return "", fmt.Errorf("%s has multiple values", formatPath(section, key))
+	}
+	return deleteLine(source, matches[0].line)
 }
 
 func (doc document) findEntries(section, key string) []entry {
@@ -380,6 +411,15 @@ func replaceLineValue(source string, index int, value string) (string, error) {
 	return joinLines(lines, trailing), nil
 }
 
+func deleteLine(source string, index int) (string, error) {
+	lines, trailing := splitLines(source)
+	if index < 0 || index >= len(lines) {
+		return "", fmt.Errorf("INI key line is not editable")
+	}
+	lines = append(lines[:index], lines[index+1:]...)
+	return joinLines(lines, trailing), nil
+}
+
 func appendGlobal(source, key, value string) string {
 	line := key + " = " + value
 	if source == "" {
@@ -417,6 +457,9 @@ func splitLines(source string) ([]string, bool) {
 }
 
 func joinLines(lines []string, trailing bool) string {
+	if len(lines) == 0 {
+		return ""
+	}
 	out := strings.Join(lines, "\n")
 	if trailing || out != "" {
 		out += "\n"

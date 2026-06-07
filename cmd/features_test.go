@@ -488,7 +488,7 @@ func TestParseFeatureSpec(t *testing.T) {
 	path := filepath.Join("..", "features", "set", "basic.md")
 	spec := parseFeatureSpec(t, path)
 
-	if len(spec.sources) != 3 || spec.sources["yaml"] == "" || spec.sources["toml"] == "" || spec.sources["json"] == "" {
+	if len(spec.sources) != 4 || spec.sources["yaml"] == "" || spec.sources["toml"] == "" || spec.sources["json"] == "" || spec.sources["ini"] == "" {
 		t.Fatalf("sources not parsed: %#v", spec.sources)
 	}
 	if len(spec.commands) != 3 {

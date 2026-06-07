@@ -35,6 +35,16 @@ size = 14
 }
 ```
 
+### INI
+
+```ini
+title = config
+
+[style]
+color = red
+size = 14
+```
+
 ## Commands
 
 ```shell
@@ -43,8 +53,17 @@ config dump
 ->   color: red
 ->   size: 14
 -> title: config
+ini -> style:
+ini ->   color: red
+ini ->   size: "14"
+ini -> title: config
 
 config dump style
 -> color: red
 -> size: 14
+ini -> color: red
+ini -> size: "14"
+
+config dump style.color
+-> red
 ```

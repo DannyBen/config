@@ -213,6 +213,55 @@ func TestSetRefusesKeySectionConflict(t *testing.T) {
 	}
 }
 
+func TestUnsetGlobalKey(t *testing.T) {
+	got, err := Unset("title = config\nenabled = true\n", "enabled")
+	if err != nil {
+		t.Fatalf("Unset returned error: %v", err)
+	}
+	want := "title = config\n"
+	if got != want {
+		t.Fatalf("Unset output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestUnsetSectionKey(t *testing.T) {
+	got, err := Unset("[server]\nhost = localhost\nport = 3000\n", "server.port")
+	if err != nil {
+		t.Fatalf("Unset returned error: %v", err)
+	}
+	want := "[server]\nhost = localhost\n"
+	if got != want {
+		t.Fatalf("Unset output mismatch\nwant:\n%sgot:\n%s", want, got)
+	}
+}
+
+func TestUnsetEscapedDotKey(t *testing.T) {
+	got, err := Unset("server.port = 3000\n", "server..port")
+	if err != nil {
+		t.Fatalf("Unset returned error: %v", err)
+	}
+	if got != "" {
+		t.Fatalf("Unset = %q, want empty", got)
+	}
+}
+
+func TestUnsetRefusesDuplicateKeys(t *testing.T) {
+	_, err := Unset("port = 3000\nport = 3001\n", "port")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestUnsetRefusesSectionAsValue(t *testing.T) {
+	_, err := Unset("[server]\nport = 3000\n", "server")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != "server is a section, not a value" {
+		t.Fatalf("error = %q", err.Error())
+	}
+}
+
 func TestFullLineCommentsOnly(t *testing.T) {
 	source := `
 ; comment

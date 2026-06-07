@@ -28,6 +28,13 @@ queue = "alt-q"
 }
 ```
 
+### INI
+
+```ini
+submit = tab
+queue = alt-q
+```
+
 ## Commands
 
 ```shell
@@ -55,4 +62,10 @@ queue = "alt-q"
 {
   "queue": "alt-q"
 }
+```
+
+### INI
+
+```ini
+queue = alt-q
 ```

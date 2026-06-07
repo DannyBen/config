@@ -39,6 +39,17 @@ password = "secret"
 }
 ```
 
+### INI
+
+```ini
+title = unset demo
+
+[database]
+host = localhost
+port = 5432
+password = secret
+```
+
 ## Commands
 
 ```shell
@@ -77,4 +88,14 @@ port = 5432
   },
   "title": "unset demo"
 }
+```
+
+### INI
+
+```ini
+title = unset demo
+
+[database]
+host = localhost
+port = 5432
 ```
