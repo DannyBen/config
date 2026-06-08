@@ -495,9 +495,9 @@ func parseFeatureArrowDirective(line string) (string, string, string, bool) {
 		return "stderr", "", parseFeatureDirectiveText(strings.TrimPrefix(line, "!->")), true
 	}
 	if before, after, ok := strings.Cut(line, " !->"); ok {
-		formatName := strings.TrimSpace(before)
-		if isFeatureFormat(formatName) {
-			return "stderr", formatName, parseFeatureDirectiveText(after), true
+		target := strings.TrimSpace(before)
+		if isFeatureOutputTarget(target) {
+			return "stderr", target, parseFeatureDirectiveText(after), true
 		}
 	}
 	if before, after, ok := strings.Cut(line, " ->"); ok {
@@ -505,7 +505,7 @@ func parseFeatureArrowDirective(line string) (string, string, string, bool) {
 		if prefix == "exit" {
 			return "exit", "", parseFeatureDirectiveText(after), true
 		}
-		if isFeatureFormat(prefix) {
+		if isFeatureOutputTarget(prefix) {
 			return "stdout", prefix, parseFeatureDirectiveText(after), true
 		}
 	}
@@ -520,7 +520,10 @@ func parseFeatureDirectiveText(text string) string {
 	return text
 }
 
-func isFeatureFormat(name string) bool {
+func isFeatureOutputTarget(name string) bool {
+	if strings.Contains(name, "/") {
+		return true
+	}
 	switch name {
 	case "yaml", "toml", "json", "ini":
 		return true
