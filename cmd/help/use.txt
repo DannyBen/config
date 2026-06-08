@@ -1,0 +1,18 @@
+Use a config file in a child shell
+
+Usage:
+  config use FILE
+  config use --help | -h
+
+Parameters:
+  FILE
+    Path to the config file to use
+
+Notes:
+  Starts a child shell with CONFIG_FILE set to the absolute path of FILE.
+  The parent shell and config file are not modified. Exit the child shell to
+  stop using FILE.
+
+Environment:
+  SHELL
+    Shell executable to start. Falls back to /bin/sh when unset or unavailable.

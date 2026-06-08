@@ -16,5 +16,6 @@ Commands:
   list        Show config values
   dump        Dump config data
   edit        Open the config file in an editor
+  use         Use a config file in a sub-shell
   completion  Generate shell completion scripts
   help        Show command help or topic help

@@ -22,6 +22,7 @@ func TestRootHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "set         Create or update config values")
 	assertContains(t, stdout.String(), "delete      Delete a config container")
 	assertContains(t, stdout.String(), "dump        Dump config data")
+	assertContains(t, stdout.String(), "use         Use a config file in a sub-shell")
 	assertContains(t, stdout.String(), "edit        Open the config file in an editor")
 	assertContains(t, stdout.String(), "completion  Generate shell completion scripts")
 	if strings.Contains(stdout.String(), "Topics:") {
@@ -38,7 +39,7 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [COMMAND|TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  edit\n  completion")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  use\n  edit\n  completion")
 	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 	if strings.Contains(stdout.String(), "Shortcut:") {
 		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
@@ -54,7 +55,7 @@ func TestHelpCommandHelpShowsTopicIndex(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Usage:\n  config help [COMMAND|TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  edit\n  completion")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  use\n  edit\n  completion")
 	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 }
 
@@ -331,6 +332,23 @@ func TestEditHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config edit [options]")
 	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "EDITOR\n    Editor command to run. Defaults to vi.")
+}
+
+func TestUseHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"use", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	assertContains(t, stdout.String(), "Use a config file in a child shell")
+	assertContains(t, stdout.String(), "Usage:\n  config use FILE")
+	assertContains(t, stdout.String(), "Starts a child shell with CONFIG_FILE set")
+	assertContains(t, stdout.String(), "SHELL\n    Shell executable to start")
 }
 
 func TestCompletionHelp(t *testing.T) {

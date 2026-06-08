@@ -97,6 +97,22 @@ func (e usageError) Error() string {
 	return e.message
 }
 
+type silentExitError struct {
+	code int
+}
+
+func (e silentExitError) Error() string {
+	return fmt.Sprintf("exit status %d", e.code)
+}
+
+func (e silentExitError) ExitCode() int {
+	return e.code
+}
+
+type exitCoder interface {
+	ExitCode() int
+}
+
 func Execute(args []string, version string, stdout, stderr io.Writer) error {
 	return ExecuteWithIO(args, version, strings.NewReader(""), stdout, stderr)
 }
@@ -112,6 +128,10 @@ func PrintError(err error, stderr io.Writer) {
 	if err == nil {
 		return
 	}
+	var silent silentExitError
+	if errors.As(err, &silent) {
+		return
+	}
 	var usage usageError
 	if errors.As(err, &usage) {
 		fmt.Fprintln(stderr, usage.Error())
@@ -123,6 +143,17 @@ func PrintError(err error, stderr io.Writer) {
 		return
 	}
 	reporter.Error(err.Error())
+}
+
+func ExitCode(err error) int {
+	if err == nil {
+		return 0
+	}
+	var coder exitCoder
+	if errors.As(err, &coder) {
+		return coder.ExitCode()
+	}
+	return 1
 }
 
 func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
@@ -139,7 +170,7 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 	root.SetVersionTemplate("{{.Version}}\n")
 	root.CompletionOptions.DisableDefaultCmd = true
 
-	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newEditCommand(stdout, stderr), newCompletionCommand(stdout), newHelpCommand(stdout))
+	root.AddCommand(newSetCommand(stdout, stderr), newGetCommand(stdout), newUnsetCommand(stdout, stderr), newDeleteCommand(stdout, stderr), newArrayCommand(stdout, stderr), newListCommand(stdout), newDumpCommand(stdout), newUseCommand(stdout, stderr), newEditCommand(stdout, stderr), newCompletionCommand(stdout), newHelpCommand(stdout))
 	return root
 }
 
@@ -467,7 +498,7 @@ func helpIndex() string {
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "array", "array set", "array add", "array delete", "list", "dump", "edit", "completion"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "array set", "array add", "array delete", "list", "dump", "use", "edit", "completion"} {
 		lines = append(lines, "  "+command)
 	}
 
@@ -490,7 +521,7 @@ func helpIndex() string {
 
 func commandHelpTopic(name string) (string, bool) {
 	switch name {
-	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "edit", "completion":
+	case "root", "set", "get", "unset", "delete", "array", "list", "dump", "use", "edit", "completion":
 		return name, true
 	case "del":
 		return "delete", true
