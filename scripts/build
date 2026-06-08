@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+version=$(git describe --tags --always --dirty 2>/dev/null || echo dev)
+build_root=/tmp/config-build
+build_src=$build_root/src
+build_bin=$build_root/config
+
+rm -rf "$build_src"
+mkdir -p "$build_src"
+cp -a "$root/." "$build_src/"
+
+(
+  cd "$build_src"
+  go build -p=1 -ldflags "-X main.Version=$version" -o "$build_bin" .
+)
+
+cp "$build_bin" "$root/config"

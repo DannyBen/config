@@ -21,6 +21,21 @@ func renderList(entries []format.Entry, color bool) string {
 	return out.String()
 }
 
+func renderListKeys(entries []format.Entry, color bool) string {
+	var out strings.Builder
+	for _, entry := range entries {
+		if color {
+			out.WriteString("\x1b[36m")
+			out.WriteString(entry.Key)
+			out.WriteString("\x1b[0m")
+		} else {
+			out.WriteString(entry.Key)
+		}
+		out.WriteByte('\n')
+	}
+	return out.String()
+}
+
 func renderListEntry(entry format.Entry, color bool) string {
 	key := truncateRunes(entry.Key, listMaxKeyLength)
 	value := strings.Join(strings.Fields(entry.Value), " ")

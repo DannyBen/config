@@ -285,6 +285,51 @@ func TestListPrintsTOMLValuesWithColor(t *testing.T) {
 	}
 }
 
+func TestListPrintsOnlyKeys(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
+
+	err := Execute([]string{"list", "-f", path, "--keys"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "title\nserver.port\nserver.enabled\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestListPrintsOnlyKeysWithColor(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[server]\nport = 3000\n")
+
+	err := Execute([]string{"list", "-f", path, "--keys", "--color"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "\x1b[36mserver.port\x1b[0m\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%q\ngot:\n%q", want, stdout.String())
+	}
+}
+
+func TestListPrintsOnlyKeysUnderTable(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
+
+	err := Execute([]string{"list", "-f", path, "server", "--keys"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "server.port\nserver.enabled\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
 func TestListPrintsTOMLValuesUnderTable(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")

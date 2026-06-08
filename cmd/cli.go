@@ -76,6 +76,7 @@ type arrayOptions struct {
 type listOptions struct {
 	configFile string
 	key        string
+	keys       bool
 	color      bool
 }
 
@@ -196,6 +197,7 @@ func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("set"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeLeafKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Edit a record in COLLECTION")
 	cmd.Flags().StringVar(&opts.on, "on", "", "Select or create a record by FIELD:VALUE")
@@ -225,6 +227,7 @@ func newGetCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("get"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeLeafKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Read a field from a record in COLLECTION")
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
@@ -253,6 +256,7 @@ func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("unset"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeLeafKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Remove a field from a record in COLLECTION")
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
@@ -287,6 +291,7 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("delete"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeContainerKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	cmd.Flags().BoolVar(&opts.ifEmpty, "if-empty", false, "Only delete when the container has no values")
@@ -318,7 +323,9 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("list"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeAnyKeys)
 	addFileFlag(cmd, &opts.configFile)
+	cmd.Flags().BoolVarP(&opts.keys, "keys", "k", false, "Print only keys")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize keys and separators")
 	return cmd
 }
@@ -343,6 +350,7 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("dump"))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeAnyKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVar(&opts.json, "json", false, "Dump as JSON")
 	return cmd
@@ -436,6 +444,7 @@ func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("array-" + name))
+	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeScalarArrayKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
@@ -688,22 +697,13 @@ func runGet(opts getOptions, stdout io.Writer) error {
 }
 
 func runList(opts listOptions, stdout io.Writer) error {
-	configFile, err := resolveConfigFile(opts.configFile)
+	entries, err := listEntries(opts.configFile, opts.key)
 	if err != nil {
 		return err
 	}
-	source, err := os.ReadFile(configFile)
-	if err != nil {
-		return err
-	}
-	doc, _, err := format.ResolveSource(configFile, source)
-	if err != nil {
-		return err
-	}
-
-	entries, err := doc.List(string(source), opts.key)
-	if err != nil {
-		return err
+	if opts.keys {
+		fmt.Fprint(stdout, renderListKeys(entries, opts.color))
+		return nil
 	}
 	fmt.Fprint(stdout, renderList(entries, opts.color))
 	return nil

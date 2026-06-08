@@ -15,6 +15,9 @@ Options:
   --file, -f PATH
     Path to the config file (default: $CONFIG_FILE)
 
+  --keys, -k
+    Print only keys
+
   --color, -c
     Colorize keys and separators
 
@@ -28,3 +31,6 @@ Examples:
 
   # List values under a key
   config list database.port --color
+
+  # List only keys
+  config list --keys
