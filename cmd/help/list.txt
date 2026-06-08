@@ -13,15 +13,18 @@ Parameters:
 
 Options:
   --file, -f PATH
-    Path to the config file
+    Path to the config file (default: $CONFIG_FILE)
 
   --color, -c
     Colorize keys and separators
 
 Examples:
-  config list -f path/to/config.toml
-  config list -f path/to/config.toml database
-  config list -f path/to/config.toml database.port
-  config list --color
-  config ls --color
-  config list
+  # List all values
+  config list -f config.toml
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
+  config list database
+
+  # List values under a key
+  config list database.port --color

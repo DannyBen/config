@@ -419,7 +419,7 @@ func newHelpCommand(stdout io.Writer) *cobra.Command {
 		Short: "Show command help or topic help",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
-				return usageError{"usage: config help [COMMAND|TOPIC]"}
+				return usageError{"usage: " + helpUsage}
 			}
 			return nil
 		},
@@ -447,19 +447,27 @@ func newHelpCommand(stdout io.Writer) *cobra.Command {
 			return fmt.Errorf("unknown help topic %q", name)
 		},
 	}
-	cmd.SetHelpFunc(helpPrinter("help"))
+	cmd.SetHelpFunc(helpIndexPrinter(stdout))
 	return cmd
 }
+
+func helpIndexPrinter(stdout io.Writer) func(*cobra.Command, []string) {
+	return func(*cobra.Command, []string) {
+		fmt.Fprintln(stdout, helpIndex())
+	}
+}
+
+const helpUsage = "config help [COMMAND|TOPIC]"
 
 func helpIndex() string {
 	lines := []string{
 		"Usage:",
-		"  config help [TOPIC]",
+		"  " + helpUsage,
 		"",
 		"Commands:",
 	}
 
-	for _, command := range []string{"set", "get", "unset", "delete", "array", "list", "dump", "edit", "completion"} {
+	for _, command := range []string{"set", "get", "unset", "delete", "array", "array set", "array add", "array delete", "list", "dump", "edit", "completion"} {
 		lines = append(lines, "  "+command)
 	}
 

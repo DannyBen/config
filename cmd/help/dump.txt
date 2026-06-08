@@ -10,14 +10,21 @@ Parameters:
 
 Options:
   --file, -f PATH
-    Path to the config file
+    Path to the config file (default: $CONFIG_FILE)
 
   --json
     Dump as JSON instead of YAML
 
 Examples:
-  config dump -f path/to/config.toml
-  config dump -f path/to/config.toml database
-  config dump -f path/to/config.toml database --json
-  config dump -f path/to/config.yaml server.hosts
-  config dump
+  # Dump all data
+  config dump -f config.toml
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
+  config dump database
+
+  # Dump as JSON
+  config dump database --json
+
+  # Dump data under a key
+  config dump server.hosts

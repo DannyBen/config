@@ -10,7 +10,7 @@ Parameters:
 
 Options:
   --file, -f PATH
-    Path to the config file
+    Path to the config file (default: $CONFIG_FILE)
 
   --in COLLECTION
     Remove a field from a record in COLLECTION. Must be used with --on.
@@ -34,8 +34,18 @@ Options:
     Colorize diff output
 
 Examples:
-  config unset -f path/to/config.toml server.port
+  # Simple delete
+  config unset -f config.toml server.port
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config unset server.port
+
+  # Delete only when the current value matches
   config unset server.port --if 3000
+
+  # Delete if the key exists
   config unset server.port --if-exists
-  config unset -f path/to/config.toml port --in servers --on name:api
+
+  # Delete from a matching array record
+  config unset port --in servers --on name:api

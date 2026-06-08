@@ -21,7 +21,7 @@ Parameters:
 
 Options:
   --file, -f PATH
-    Path to the config file
+    Path to the config file (default: $CONFIG_FILE)
 
   --dry, -n
     Print the updated config without modifying the file
@@ -33,5 +33,12 @@ Options:
     Colorize diff output
 
 Examples:
+  # Remove a value
+  config array delete -f config.toml roots /tmp
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config array delete roots /tmp
+
+  # Use the short command alias
   config array del roots /tmp /var/tmp

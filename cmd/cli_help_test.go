@@ -37,12 +37,25 @@ func TestHelpCommandShowsTopicIndex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config help [TOPIC]")
-	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  list\n  dump\n  edit\n  completion")
+	assertContains(t, stdout.String(), "Usage:\n  config help [COMMAND|TOPIC]")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  edit\n  completion")
 	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 	if strings.Contains(stdout.String(), "Shortcut:") {
 		t.Fatalf("help index should not include shortcut text:\n%s", stdout.String())
 	}
+}
+
+func TestHelpCommandHelpShowsTopicIndex(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"help", "--help"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	assertContains(t, stdout.String(), "Usage:\n  config help [COMMAND|TOPIC]")
+	assertContains(t, stdout.String(), "Commands:\n  set\n  get\n  unset\n  delete\n  array\n  array set\n  array add\n  array delete\n  list\n  dump\n  edit\n  completion")
+	assertContains(t, stdout.String(), "Other topics:\n  environment\n  formats")
 }
 
 func TestHelpCommandShowsCommandHelp(t *testing.T) {
@@ -133,7 +146,7 @@ func TestSetHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")
-	assertContains(t, stdout.String(), "export CONFIG_FILE=~/.codex/config.toml")
+	assertContains(t, stdout.String(), "export CONFIG_FILE=config.toml")
 }
 
 func TestDeleteHelp(t *testing.T) {
@@ -295,7 +308,7 @@ func TestListHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Aliases:\n  ls")
 	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize keys and separators")
-	assertContains(t, stdout.String(), "config ls --color")
+	assertContains(t, stdout.String(), "config list database.port --color")
 	if strings.Contains(stdout.String(), "config ls [KEY]") {
 		t.Fatalf("list usage should not include aliases:\n%s", stdout.String())
 	}
