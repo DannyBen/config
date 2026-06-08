@@ -18,6 +18,14 @@ func validateYAML(source string) error {
 	return err
 }
 
+func Valid(source string) bool {
+	root, err := parseYAML(source)
+	if err != nil || root == nil {
+		return false
+	}
+	return root.Kind == yaml.MappingNode || root.Kind == yaml.SequenceNode
+}
+
 func parseYAML(source string) (*yaml.Node, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal([]byte(source), &doc); err != nil {

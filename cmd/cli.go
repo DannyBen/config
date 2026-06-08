@@ -634,15 +634,15 @@ func runGet(opts getOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	doc, _, err := format.Resolve(configFile)
-	if err != nil {
-		return err
-	}
-
 	source, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
+	doc, _, err := format.ResolveSource(configFile, source)
+	if err != nil {
+		return err
+	}
+
 	var value string
 	if opts.in != "" {
 		value, err = doc.GetIn(string(source), opts.in, opts.on, opts.key)
@@ -661,15 +661,15 @@ func runList(opts listOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	doc, _, err := format.Resolve(configFile)
-	if err != nil {
-		return err
-	}
-
 	source, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
+	doc, _, err := format.ResolveSource(configFile, source)
+	if err != nil {
+		return err
+	}
+
 	entries, err := doc.List(string(source), opts.key)
 	if err != nil {
 		return err
@@ -683,15 +683,15 @@ func runDump(opts dumpOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	doc, _, err := format.Resolve(configFile)
-	if err != nil {
-		return err
-	}
-
 	source, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
+	doc, _, err := format.ResolveSource(configFile, source)
+	if err != nil {
+		return err
+	}
+
 	value, err := doc.Dump(string(source), opts.key)
 	if err != nil {
 		return err
@@ -766,16 +766,16 @@ func runEdit(command, configFile string, dry, diff, color bool, stdout, stderr i
 		return err
 	}
 	log.Debug("resolved config file", "command", command, "path", configFile)
-	doc, formatName, err := format.Resolve(configFile)
-	if err != nil {
-		return err
-	}
-	log.Debug("detected format", "format", formatName)
 
 	source, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
+	doc, formatName, err := format.ResolveSource(configFile, source)
+	if err != nil {
+		return err
+	}
+	log.Debug("detected format", "format", formatName)
 	log.Debug("read config", "bytes", len(source))
 	updated, err := edit(doc, string(source))
 	if err != nil {

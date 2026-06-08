@@ -51,6 +51,19 @@ func parseJSON(source string) (any, error) {
 	return value, nil
 }
 
+func Valid(source string) bool {
+	value, err := parseJSON(source)
+	if err != nil {
+		return false
+	}
+	switch value.(type) {
+	case object, []any:
+		return true
+	default:
+		return false
+	}
+}
+
 func parseJSONValue(decoder *json.Decoder) (any, error) {
 	token, err := decoder.Token()
 	if err != nil {

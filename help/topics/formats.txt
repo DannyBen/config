@@ -16,6 +16,20 @@ The `config` command supports TOML, YAML, JSON, and INI files.
   INI
     `.ini`
 
+**Unknown extensions**
+
+  Files with unknown extensions are detected from their contents. TOML and INI
+  are checked first because their syntax can overlap. If both match, `config`
+  refuses the file and asks for a format hint.
+
+  Add a format hint as the first non-empty line when needed:
+
+    `# format: toml`
+    `# format: ini`
+    `# format: yaml`
+
+  JSON does not support format hints because JSON files cannot contain comments.
+
 **Write behavior**
 
   TOML and YAML
