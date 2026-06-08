@@ -1,6 +1,14 @@
 Changelog
 ========================================
 
+v0.1.8 - 2026-06-08
+----------------------------------------
+
+- Add bash completion to Linux packages [`de7da00`](https://github.com/dannyben/config/commit/de7da00)
+- Add `use FILE` command to start a subshell with CONFIG_FILE [`a33aa0b`](https://github.com/dannyben/config/commit/a33aa0b)
+- Compare [`v0.1.7..v0.1.8`](https://github.com/dannyben/config/compare/v0.1.7..v0.1.8)
+
+
 v0.1.7 - 2026-06-08
 ----------------------------------------
 
