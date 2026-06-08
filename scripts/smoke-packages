@@ -2,7 +2,7 @@
 set -euo pipefail
 
 dist="${1:-dist}"
-dist="$(cd "$dist" && pwd)"
+dist="$(realpath "$dist")"
 
 find_one() {
   local pattern="$1"
@@ -33,8 +33,8 @@ docker run --rm -v "$dist:/dist:ro" ubuntu:24.04 bash -lc "
   config --version
   config --help >/dev/null
   printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
-  test \"\$(config get /tmp/config.toml app.name)\" = demo
-  dpkg -L config >/dev/null
+  test \"\$(config get -f /tmp/config.toml app.name)\" = demo
+  dpkg -L config | grep -Fx /usr/share/bash-completion/completions/config >/dev/null
 "
 
 docker run --rm -v "$dist:/dist:ro" fedora:latest bash -lc "
@@ -43,8 +43,8 @@ docker run --rm -v "$dist:/dist:ro" fedora:latest bash -lc "
   config --version
   config --help >/dev/null
   printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
-  test \"\$(config get /tmp/config.toml app.name)\" = demo
-  rpm -ql config >/dev/null
+  test \"\$(config get -f /tmp/config.toml app.name)\" = demo
+  rpm -ql config | grep -Fx /usr/share/bash-completion/completions/config >/dev/null
 "
 
 docker run --rm -v "$dist:/dist:ro" alpine:latest sh -lc "
@@ -53,6 +53,6 @@ docker run --rm -v "$dist:/dist:ro" alpine:latest sh -lc "
   config --version
   config --help >/dev/null
   printf 'app = { name = \"demo\" }\n' >/tmp/config.toml
-  test \"\$(config get /tmp/config.toml app.name)\" = demo
-  apk info -L config >/dev/null
+  test \"\$(config get -f /tmp/config.toml app.name)\" = demo
+  apk info -L config | grep -Fx usr/share/bash-completion/completions/config >/dev/null
 "

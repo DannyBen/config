@@ -5,6 +5,7 @@ project_name: config
 before:
   hooks:
     - go mod tidy
+    - scripts/generate-completions
 
 builds:
   - id: config
@@ -48,6 +49,9 @@ nfpms:
       - deb
       - rpm
     bindir: /usr/bin
+    contents:
+      - src: packaging/completions/config.bash
+        dst: /usr/share/bash-completion/completions/config
 
 checksum:
   name_template: checksums.txt
