@@ -69,6 +69,10 @@ func TestUseResolvesRelativeConfigFile(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+	wantConfigFile, err := filepath.Abs("config.toml")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var gotEnv []string
 	oldRunShell := runShell
@@ -85,7 +89,7 @@ func TestUseResolvesRelativeConfigFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
-	assertEnvValue(t, gotEnv, "CONFIG_FILE", configFile)
+	assertEnvValue(t, gotEnv, "CONFIG_FILE", wantConfigFile)
 }
 
 func TestUseFallsBackToBinShWhenShellIsUnavailable(t *testing.T) {
