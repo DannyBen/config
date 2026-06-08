@@ -14,6 +14,13 @@ The `config` command reads a small set of environment variables.
     config set server.port 3000
     ```
 
+    As a convenience wrapper, you can also start a subshell with
+    `CONFIG_FILE` set by running:
+
+    ```
+    config use ~/.codex/config.toml
+    ```
+
 **Logging**
 
   `CONFIG_LOG_LEVEL`

@@ -96,6 +96,7 @@ func TestHelpCommandShowsTopicHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Topic: environment")
 	assertContains(t, stdout.String(), "CONFIG_FILE")
 	assertContains(t, stdout.String(), "export CONFIG_FILE=~/.codex/config.toml")
+	assertContains(t, stdout.String(), "config use ~/.codex/config.toml")
 	assertContains(t, stdout.String(), "CONFIG_LOG_LEVEL")
 }
 
