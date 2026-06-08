@@ -121,7 +121,7 @@ func applyVerifiedDelete(source string, planned edit, path []string, reindexes b
 		}
 		return updated, nil
 	}
-	return verifySemanticPatch(source, updated, func(expected map[string]string) error {
+	return verifySemanticPatchWithOptions(source, updated, verifyOptions{allowEmptyParentNullsFor: path}, func(expected map[string]string) error {
 		semanticDeletePrefix(expected, path)
 		return nil
 	})

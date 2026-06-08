@@ -30,6 +30,20 @@ func TestDeleteSequenceContainer(t *testing.T) {
 	}
 }
 
+func TestDeleteNestedOnlyChildSequenceContainer(t *testing.T) {
+	source := "changelog:\n  sort: asc\n  filters:\n    include:\n      - \"^- \"\nrelease:\n  draft: false\n"
+
+	got, err := Delete(source, "changelog.filters.include", nil)
+
+	if err != nil {
+		t.Fatalf("Delete returned error: %v", err)
+	}
+	want := "changelog:\n  sort: asc\n  filters:\nrelease:\n  draft: false\n"
+	if got != want {
+		t.Fatalf("updated source mismatch\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
 func TestDeleteSelectedRecord(t *testing.T) {
 	source := "servers:\n  - name: api\n    port: 3000\n  - name: worker\n    port: 3001\n    host: worker.local\n"
 
