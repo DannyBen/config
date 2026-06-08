@@ -46,15 +46,6 @@ func Resolve(path string) (Document, string, error) {
 	}
 }
 
-func TargetPath(path string) bool {
-	switch extension(path) {
-	case ".toml", ".yaml", ".yml", ".json", ".ini":
-		return true
-	default:
-		return false
-	}
-}
-
 func extension(path string) string {
 	ext := strings.ToLower(filepath.Ext(path))
 	return ext

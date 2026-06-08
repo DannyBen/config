@@ -12,7 +12,7 @@ func TestGetPrintsTOMLValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nport = 5432\n")
 
-	err := Execute([]string{"get", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -26,7 +26,7 @@ func TestGetPrintsSelectedTOMLRecordValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n\n[[servers]]\nname = \"worker\"\nport = 3001\n")
 
-	err := Execute([]string{"get", path, "port", "--in", "servers", "--on", "name:worker"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "port", "--in", "servers", "--on", "name:worker"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -40,7 +40,7 @@ func TestGetSelectedRecordRequiresInWithOn(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"get", path, "port", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "port", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -54,7 +54,7 @@ func TestGetSelectedRecordRequiresOnWithIn(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"get", path, "port", "--in", "servers"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "port", "--in", "servers"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -97,14 +97,14 @@ func TestGetFailsWhenConfigFileIsNotSpecified(t *testing.T) {
 }
 
 func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) {
+	clearConfigFileEnv(t)
 	var stdout, stderr bytes.Buffer
 	path := filepath.Join(t.TempDir(), "config.conf")
 	if err := os.WriteFile(path, []byte("port = 3000\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("CONFIG_FILE", path)
 
-	err := Execute([]string{"get", "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -121,7 +121,7 @@ func TestGetPrintsJSONValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"database":{"port":5432}}`)
 
-	err := Execute([]string{"get", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -138,7 +138,7 @@ func TestGetPrintsINIValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempINI(t, "title = demo app\n[server]\nport = 3000\n")
 
-	err := Execute([]string{"get", path, "server.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", path, "server.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -151,13 +151,13 @@ func TestGetPrintsINIValue(t *testing.T) {
 	}
 }
 
-func TestExplicitTargetPathOverridesConfigFileEnv(t *testing.T) {
+func TestFileFlagOverridesConfigFileEnv(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nport = 5432\n")
 	t.Setenv("CONFIG_FILE", path)
 	yamlPath := writeTempYAML(t, "database:\n  port: 5432\n")
 
-	err := Execute([]string{"get", yamlPath, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", "-f", yamlPath, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -170,11 +170,11 @@ func TestExplicitTargetPathOverridesConfigFileEnv(t *testing.T) {
 	}
 }
 
-func TestGetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
+func TestPositionalTargetPathIsNotAccepted(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nport = 5432\n")
 
-	err := Execute([]string{"get", path}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"get", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -182,7 +182,24 @@ func TestGetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if !strings.Contains(err.Error(), "usage: config get [CONFIG_FILE] KEY") {
+	if !strings.Contains(err.Error(), "usage: config get KEY") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestGetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[database]\nport = 5432\n")
+
+	err := Execute([]string{"get", "-f", path}, "1.2.3", &stdout, &stderr)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if !strings.Contains(err.Error(), "usage: config get KEY") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -191,7 +208,7 @@ func TestListPrintsTOMLValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
 
-	err := Execute([]string{"list", path}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"list", "-f", path}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -206,7 +223,7 @@ func TestListAliasPrintsTOMLValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nport = 3000\n")
 
-	err := Execute([]string{"ls", path}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"ls", "-f", path}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -221,7 +238,7 @@ func TestListPrintsTOMLValuesWithColor(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nport = 3000\n")
 
-	err := Execute([]string{"list", path, "--color"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"list", "-f", path, "--color"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -236,7 +253,7 @@ func TestListPrintsTOMLValuesUnderTable(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
 
-	err := Execute([]string{"list", path, "server"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"list", "-f", path, "server"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -251,7 +268,7 @@ func TestListPrintsINIValuesUnderSection(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempINI(t, "title = demo app\n[server]\nport = 3000\nenabled = true\n")
 
-	err := Execute([]string{"list", path, "server"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"list", "-f", path, "server"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -296,7 +313,7 @@ func TestDumpPrintsTOMLAsYAML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nport = 3000\nenabled = true\n")
 
-	err := Execute([]string{"dump", path}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"dump", "-f", path}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -311,7 +328,7 @@ func TestDumpPrintsTOMLSubtree(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nports = [3000, 3001]\nenabled = true\n")
 
-	err := Execute([]string{"dump", path, "server"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"dump", "-f", path, "server"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -326,7 +343,7 @@ func TestDumpPrintsTOMLSubtreeAsJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo app\"\n\n[server]\nports = [3000, 3001]\nenabled = true\n")
 
-	err := Execute([]string{"dump", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"dump", "-f", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -341,7 +358,7 @@ func TestDumpPrintsYAMLSubtree(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempYAML(t, "server:\n  hosts:\n    - api.example.com\n    - worker.example.com\n  enabled: true\n")
 
-	err := Execute([]string{"dump", path, "server.hosts"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"dump", "-f", path, "server.hosts"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -356,7 +373,7 @@ func TestDumpPrintsYAMLSubtreeAsJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempYAML(t, "server:\n  hosts:\n    - api.example.com\n    - worker.example.com\n  enabled: true\n")
 
-	err := Execute([]string{"dump", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"dump", "-f", path, "server", "--json"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)

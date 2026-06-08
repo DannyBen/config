@@ -55,11 +55,11 @@ Supported config files:
 Run `config help formats` for format-specific behavior.
 
 ```bash
-config get path/to/config.toml server.port
-config set path/to/config.toml server.port 3000
-config array add path/to/config.toml sandbox_workspace_write.writable_roots '$HOME/.cache'
-config unset path/to/config.toml server.password
-config list path/to/config.toml server
+config get -f path/to/config.toml server.port
+config set -f path/to/config.toml server.port 3000
+config array add -f path/to/config.toml sandbox_workspace_write.writable_roots '$HOME/.cache'
+config unset -f path/to/config.toml server.password
+config list -f path/to/config.toml server
 ```
 
 For repeated edits, set `CONFIG_FILE` once:
@@ -74,20 +74,20 @@ config edit
 Use `--diff` or `--diff --color` (`-dc`) to preview an edit:
 
 ```bash
-config set config.yaml server.port 3000 -dc
+config set -f config.yaml server.port 3000 -dc
 ```
 
 Use `--string` when a value should remain text even if it looks like a typed
 literal:
 
 ```bash
-config set config.toml version 1.0 --string
+config set -f config.toml version 1.0 --string
 ```
 
 Use `--in` and `--on` to update records:
 
 ```bash
-config set config.toml port 3000 --in servers --on name:api
+config set -f config.toml port 3000 --in servers --on name:api
 ```
 
 ## Feature Specs

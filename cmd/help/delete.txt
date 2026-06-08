@@ -1,20 +1,20 @@
 Delete a config container
 
 Usage:
-  config delete [CONFIG_FILE] KEY [options]
+  config delete KEY [options]
   config delete --help | -h
 
 Aliases:
   del
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended config container
 
 Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
+
   --on FIELD:VALUE
     Select a record by FIELD:VALUE. May be repeated.
 
@@ -31,8 +31,18 @@ Options:
     Colorize diff output
 
 Examples:
-  config delete path/to/config.toml style
+  # Delete a container
+  config delete -f config.toml style
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config delete servers.1
+
+  # Use the short command alias
   config del servers.1
+
+  # Delete a matching array record
   config delete servers --on name:web
+
+  # Delete only when the container is empty
   config delete tui.keymap.composer --if-empty

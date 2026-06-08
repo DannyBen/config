@@ -7,8 +7,3 @@ Usage:
 Parameters:
   SHELL
     Shell to generate completions for: bash, zsh, fish
-
-Examples:
-  config completion bash
-  config completion zsh
-  config completion fish

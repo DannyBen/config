@@ -1,13 +1,10 @@
 Show a config value
 
 Usage:
-  config get [CONFIG_FILE] KEY [options]
+  config get KEY [options]
   config get --help | -h
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended config key
 
@@ -19,6 +16,9 @@ Notes:
   source literal.
 
 Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
+
   --in COLLECTION
     Read a field from a record in COLLECTION. Must be used with --on.
 
@@ -26,6 +26,12 @@ Options:
     Select a record by FIELD:VALUE. May be repeated.
 
 Examples:
-  config get path/to/config.toml server.port
+  # Read a value
+  config get -f config.toml server.port
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config get server.port
-  config get path/to/config.toml port --in servers --on name:api
+
+  # Read from a matching array record
+  config get port --in servers --on name:api

@@ -1,23 +1,30 @@
 Dump config data
 
 Usage:
-  config dump [CONFIG_FILE] [KEY] [options]
+  config dump [KEY] [options]
   config dump --help | -h
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Optional key or table path to dump
 
 Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
+
   --json
     Dump as JSON instead of YAML
 
 Examples:
-  config dump path/to/config.toml
-  config dump path/to/config.toml database
-  config dump path/to/config.toml database --json
-  config dump path/to/config.yaml server.hosts
-  config dump
+  # Dump all data
+  config dump -f config.toml
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
+  config dump database
+
+  # Dump as JSON
+  config dump database --json
+
+  # Dump data under a key
+  config dump server.hosts

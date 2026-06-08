@@ -11,7 +11,7 @@ func TestUnsetWritesUpdatedTOML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nhost = \"localhost\"\nport = 5432\n")
 
-	err := Execute([]string{"unset", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -28,7 +28,7 @@ func TestUnsetWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"database":{"host":"localhost","port":5432}}`)
 
-	err := Execute([]string{"unset", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -75,7 +75,7 @@ func TestUnsetDryPrintsUpdatedTOML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nhost = \"localhost\"\nport = 5432\n")
 
-	err := Execute([]string{"unset", "--dry", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "--dry", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -92,7 +92,7 @@ func TestUnsetDiffPrintsUnifiedDiff(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nhost = \"localhost\"\nport = 5432\n")
 
-	err := Execute([]string{"unset", "--diff", path, "database.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "--diff", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -108,16 +108,16 @@ func TestUnsetIfValueOnlyUnsetsMatchingScalar(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "submit = \"tab\"\nqueue = \"alt-w\"\n")
 
-	err := Execute([]string{"unset", path, "submit", "--if", "tab"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "submit", "--if", "tab"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
-	err = Execute([]string{"unset", path, "queue", "--if", "alt-q"}, "1.2.3", &stdout, &stderr)
+	err = Execute([]string{"unset", "-f", path, "queue", "--if", "alt-q"}, "1.2.3", &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
-	err = Execute([]string{"unset", path, "missing", "--if", "tab"}, "1.2.3", &stdout, &stderr)
+	err = Execute([]string{"unset", "-f", path, "missing", "--if", "tab"}, "1.2.3", &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
@@ -133,12 +133,12 @@ func TestUnsetIfExistsIgnoresMissingKey(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "submit = \"tab\"\nqueue = \"alt-q\"\n")
 
-	err := Execute([]string{"unset", path, "submit", "--if-exists"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "submit", "--if-exists"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
-	err = Execute([]string{"unset", path, "missing", "--if-exists"}, "1.2.3", &stdout, &stderr)
+	err = Execute([]string{"unset", "-f", path, "missing", "--if-exists"}, "1.2.3", &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestUnsetSelectedTOMLRecordValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n\n[[servers]]\nname = \"worker\"\nport = 3001\n")
 
-	err := Execute([]string{"unset", "--dry", path, "port", "--in", "servers", "--on", "name:worker"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "--dry", "-f", path, "port", "--in", "servers", "--on", "name:worker"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -169,7 +169,7 @@ func TestUnsetSelectedRecordRequiresInWithOn(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"unset", path, "port", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "port", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -183,7 +183,7 @@ func TestUnsetSelectedRecordRequiresOnWithIn(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"unset", path, "port", "--in", "servers"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-f", path, "port", "--in", "servers"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -211,7 +211,7 @@ func TestDeleteWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"title":"demo","style":{"color":"blue"},"server":{"port":3000}}`)
 
-	err := Execute([]string{"delete", path, "style"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "-f", path, "style"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -229,7 +229,7 @@ func TestDeleteAliasWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"title":"demo","style":{"color":"blue"},"server":{"port":3000}}`)
 
-	err := Execute([]string{"del", path, "style"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"del", "-f", path, "style"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -247,7 +247,7 @@ func TestDeleteDryPrintsUpdatedTOML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo\"\n\n[style]\ncolor = \"blue\"\nfont = \"arial\"\n")
 
-	err := Execute([]string{"delete", "--dry", path, "style"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "--dry", "-f", path, "style"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -264,7 +264,7 @@ func TestDeleteDiffPrintsUnifiedDiff(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "title = \"demo\"\n\n[style]\ncolor = \"blue\"\nfont = \"arial\"\n")
 
-	err := Execute([]string{"delete", "--diff", path, "style"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "--diff", "-f", path, "style"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -281,7 +281,7 @@ func TestDeleteIfEmptyNoOpsWhenContainerHasValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[style]\ncolor = \"blue\"\n")
 
-	err := Execute([]string{"delete", path, "style", "--if-empty"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "-f", path, "style", "--if-empty"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -298,7 +298,7 @@ func TestDeleteRefusesScalarValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[style]\ncolor = \"blue\"\nfont = \"arial\"\n")
 
-	err := Execute([]string{"delete", path, "style.color"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "-f", path, "style.color"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -313,7 +313,7 @@ func TestDeleteAcceptsRepeatedSelectors(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n\n[[servers]]\nname = \"api\"\nport = 3001\n")
 
-	err := Execute([]string{"delete", "--dry", path, "servers", "--on", "name:api", "--on", "port:3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "--dry", "-f", path, "servers", "--on", "name:api", "--on", "port:3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -328,7 +328,7 @@ func TestDeleteColorRequiresDiff(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nport = 5432\n")
 
-	err := Execute([]string{"delete", "--color", path, "database"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"delete", "--color", "-f", path, "database"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -344,7 +344,7 @@ func TestPrintErrorPrefixesOperationalErrors(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[database]\nport = 5432\n")
 
-	err := Execute([]string{"unset", "-dc", path, "database"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"unset", "-dc", "-f", path, "database"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -394,7 +394,7 @@ func TestSetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", path, "server.port"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.port"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -402,7 +402,7 @@ func TestSetMissingRequiredArgFailsAfterConfigFileIsResolved(t *testing.T) {
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if !strings.Contains(err.Error(), "usage: config set [CONFIG_FILE] KEY VALUE [options]") {
+	if !strings.Contains(err.Error(), "usage: config set KEY VALUE [options]") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

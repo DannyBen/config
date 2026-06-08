@@ -1,7 +1,7 @@
 Remove values from a scalar array
 
 Usage:
-  config array delete [CONFIG_FILE] KEY VALUE... [options]
+  config array delete KEY VALUE... [options]
   config array delete --help | -h
 
 Aliases:
@@ -13,9 +13,6 @@ Behavior:
   Deletes KEY when no values remain.
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended array key
 
@@ -23,6 +20,9 @@ Parameters:
     Scalar values to remove from the array
 
 Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -33,5 +33,12 @@ Options:
     Colorize diff output
 
 Examples:
+  # Remove a value
+  config array delete -f config.toml roots /tmp
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config array delete roots /tmp
+
+  # Use the short command alias
   config array del roots /tmp /var/tmp

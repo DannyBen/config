@@ -12,7 +12,7 @@ func TestSetEchoesParsedArgsWithFlagAfterPositionals(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", path, "server.port", "3000", "--dry"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.port", "3000", "--dry"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -32,7 +32,7 @@ func TestSetEchoesParsedArgsWithFlagBeforePositionals(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "--dry", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--dry", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -46,7 +46,7 @@ func TestSetEchoesParsedArgsWithShortFlag(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "-n", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-n", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -60,7 +60,7 @@ func TestSetEchoesParsedArgsWithDiffFlag(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "-d", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-d", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -77,7 +77,7 @@ func TestSetColorizesDiff(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "--diff", "--color", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--diff", "--color", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -90,7 +90,7 @@ func TestSetCompactsDiffAndColorShortFlags(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "-dc", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-dc", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -169,7 +169,7 @@ func TestSetWritesUpdatedTOML(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -186,7 +186,7 @@ func TestSetWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"title":"demo app"}`)
 
-	err := Execute([]string{"set", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -204,7 +204,7 @@ func TestArrayAddWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"roots":["$HOME/.cache"]}`)
 
-	err := Execute([]string{"array", "add", path, "roots", "/tmp", "$HOME/.cache"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"array", "add", "-f", path, "roots", "/tmp", "$HOME/.cache"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -222,7 +222,7 @@ func TestArrayDeleteAliasWritesUpdatedJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempJSON(t, `{"roots":["/var/tmp","/tmp"]}`)
 
-	err := Execute([]string{"array", "del", path, "roots", "/tmp"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"array", "del", "-f", path, "roots", "/tmp"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -240,12 +240,12 @@ func TestSetRejectsMultipleValues(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nports = [1000]\n")
 
-	err := Execute([]string{"set", path, "server.ports", "3000", "3001"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.ports", "3000", "3001"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !strings.Contains(err.Error(), "usage: config set [CONFIG_FILE] KEY VALUE [options]") {
+	if !strings.Contains(err.Error(), "usage: config set KEY VALUE [options]") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -254,7 +254,7 @@ func TestSetWritesTOMLLiteralValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "release.date = \"old\"\n")
 
-	err := Execute([]string{"set", path, "release.date", "2027-03-24"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "release.date", "2027-03-24"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -273,7 +273,7 @@ func TestSetIdenticalValueDoesNotWriteFile(t *testing.T) {
 	}
 	defer os.Chmod(path, 0644)
 
-	err := Execute([]string{"set", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -290,7 +290,7 @@ func TestSetIdenticalValueDiffPrintsNothing(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 3000\n")
 
-	err := Execute([]string{"set", "--diff", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--diff", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -307,7 +307,7 @@ func TestSetIdenticalValueDryPrintsUnchangedConfig(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 3000\n")
 
-	err := Execute([]string{"set", "--dry", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--dry", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -324,7 +324,7 @@ func TestSetStringFlagForcesStringValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "version = 1.0\n")
 
-	err := Execute([]string{"set", "--string", path, "version", "1.0"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--string", "-f", path, "version", "1.0"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -339,7 +339,7 @@ func TestSetReadsValueFromStdin(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "message = \"short\"\n")
 
-	err := ExecuteWithIO([]string{"set", path, "message", "-"}, "1.2.3", strings.NewReader("hello\nworld"), &stdout, &stderr)
+	err := ExecuteWithIO([]string{"set", "-f", path, "message", "-"}, "1.2.3", strings.NewReader("hello\nworld"), &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -357,7 +357,7 @@ func TestSetDryAndDiffAreMutuallyExclusive(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "--dry", "--diff", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--dry", "--diff", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -387,7 +387,7 @@ func TestSetInOnWritesArrayRecord(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"set", path, "port", "8080", "--in", "servers", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "port", "8080", "--in", "servers", "--on", "name:api"}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -402,7 +402,7 @@ func TestSetInRequiresOnFlag(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
 
-	err := Execute([]string{"set", path, "port", "8080", "--in", "servers"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "-f", path, "port", "8080", "--in", "servers"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -416,7 +416,7 @@ func TestSetColorRequiresDiff(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "server.port = 2000\n")
 
-	err := Execute([]string{"set", "--color", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"set", "--color", "-f", path, "server.port", "3000"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")

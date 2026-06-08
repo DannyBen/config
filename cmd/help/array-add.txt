@@ -1,7 +1,7 @@
 Add values to a scalar array
 
 Usage:
-  config array add [CONFIG_FILE] KEY VALUE... [options]
+  config array add KEY VALUE... [options]
   config array add --help | -h
 
 Behavior:
@@ -9,9 +9,6 @@ Behavior:
   Ignores values that are already present.
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended array key
 
@@ -19,6 +16,9 @@ Parameters:
     Scalar values to add to the array
 
 Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -29,4 +29,9 @@ Options:
     Colorize diff output
 
 Examples:
+  # Add values
+  config array add -f config.toml roots /var/tmp "$HOME/.cache"
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config array add roots /var/tmp "$HOME/.cache"

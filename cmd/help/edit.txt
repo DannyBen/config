@@ -1,17 +1,21 @@
 Open the config file in an editor
 
 Usage:
-  config edit [CONFIG_FILE]
+  config edit [options]
   config edit --help | -h
 
-Parameters:
-  CONFIG_FILE
-    Path to the config file
+Options:
+  --file, -f PATH
+    Path to the config file (default: $CONFIG_FILE)
 
 Environment:
   EDITOR
     Editor command to run. Defaults to vi.
 
 Examples:
-  config edit path/to/config.toml
+  # Open a file
+  config edit -f config.toml
+
+  # Use a default file for repeated commands
+  export CONFIG_FILE=config.toml
   config edit
