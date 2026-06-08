@@ -146,14 +146,13 @@ func NewRootCommand(version string, stdout, stderr io.Writer) *cobra.Command {
 func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts setOptions
 	cmd := &cobra.Command{
-		Use:   "set [CONFIG_FILE] KEY VALUE [options]",
+		Use:   "set KEY VALUE [options]",
 		Short: "Create or update config values",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 2, 2, "usage: config set [CONFIG_FILE] KEY VALUE [options]")
+			rest, err := parseCommandArgs(args, 2, 2, "usage: config set KEY VALUE [options]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			opts.key = rest[0]
 			opts.value = rest[1]
 			return nil
@@ -166,6 +165,7 @@ func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("set"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Edit a record in COLLECTION")
 	cmd.Flags().StringVar(&opts.on, "on", "", "Select or create a record by FIELD:VALUE")
 	cmd.Flags().BoolVarP(&opts.string, "string", "s", false, "Store VALUE as a string")
@@ -179,14 +179,13 @@ func newSetCommand(stdout, stderr io.Writer) *cobra.Command {
 func newGetCommand(stdout io.Writer) *cobra.Command {
 	var opts getOptions
 	cmd := &cobra.Command{
-		Use:   "get [CONFIG_FILE] KEY",
+		Use:   "get KEY",
 		Short: "Show a config value",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 1, 1, "usage: config get [CONFIG_FILE] KEY")
+			rest, err := parseCommandArgs(args, 1, 1, "usage: config get KEY")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			opts.key = rest[0]
 			return nil
 		},
@@ -195,6 +194,7 @@ func newGetCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("get"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Read a field from a record in COLLECTION")
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	return cmd
@@ -203,14 +203,13 @@ func newGetCommand(stdout io.Writer) *cobra.Command {
 func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts unsetOptions
 	cmd := &cobra.Command{
-		Use:   "unset [CONFIG_FILE] KEY [options]",
+		Use:   "unset KEY [options]",
 		Short: "Delete a config value",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 1, 1, "usage: config unset [CONFIG_FILE] KEY [options]")
+			rest, err := parseCommandArgs(args, 1, 1, "usage: config unset KEY [options]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			opts.key = rest[0]
 			return nil
 		},
@@ -223,6 +222,7 @@ func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("unset"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringVar(&opts.in, "in", "", "Remove a field from a record in COLLECTION")
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	cmd.Flags().StringVar(&opts.ifValue, "if", "", "Only unset when the current value matches VALUE")
@@ -237,15 +237,14 @@ func newUnsetCommand(stdout, stderr io.Writer) *cobra.Command {
 func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts deleteOptions
 	cmd := &cobra.Command{
-		Use:     "delete [CONFIG_FILE] KEY [options]",
+		Use:     "delete KEY [options]",
 		Aliases: []string{"del"},
 		Short:   "Delete a config container",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 1, 1, "usage: config delete [CONFIG_FILE] KEY [options]")
+			rest, err := parseCommandArgs(args, 1, 1, "usage: config delete KEY [options]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			opts.key = rest[0]
 			return nil
 		},
@@ -257,6 +256,7 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("delete"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	cmd.Flags().BoolVar(&opts.ifEmpty, "if-empty", false, "Only delete when the container has no values")
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
@@ -269,15 +269,14 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 func newListCommand(stdout io.Writer) *cobra.Command {
 	var opts listOptions
 	cmd := &cobra.Command{
-		Use:     "list [CONFIG_FILE] [KEY]",
+		Use:     "list [KEY]",
 		Aliases: []string{"ls"},
 		Short:   "Show config values",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 0, 1, "usage: config list [CONFIG_FILE] [KEY]")
+			rest, err := parseCommandArgs(args, 0, 1, "usage: config list [KEY]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			if len(rest) == 1 {
 				opts.key = rest[0]
 			}
@@ -288,6 +287,7 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("list"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize keys and separators")
 	return cmd
 }
@@ -295,14 +295,13 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 func newDumpCommand(stdout io.Writer) *cobra.Command {
 	var opts dumpOptions
 	cmd := &cobra.Command{
-		Use:   "dump [CONFIG_FILE] [KEY]",
+		Use:   "dump [KEY]",
 		Short: "Dump config data",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 0, 1, "usage: config dump [CONFIG_FILE] [KEY]")
+			rest, err := parseCommandArgs(args, 0, 1, "usage: config dump [KEY]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			if len(rest) == 1 {
 				opts.key = rest[0]
 			}
@@ -313,6 +312,7 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("dump"))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVar(&opts.json, "json", false, "Dump as JSON")
 	return cmd
 }
@@ -320,14 +320,13 @@ func newDumpCommand(stdout io.Writer) *cobra.Command {
 func newEditCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts editOptions
 	cmd := &cobra.Command{
-		Use:   "edit [CONFIG_FILE]",
+		Use:   "edit [options]",
 		Short: "Open the config file in an editor",
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, _, err := parseCommandArgs(args, 0, 0, "usage: config edit [CONFIG_FILE]")
+			_, err := parseCommandArgs(args, 0, 0, "usage: config edit [options]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -335,6 +334,7 @@ func newEditCommand(stdout, stderr io.Writer) *cobra.Command {
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("edit"))
+	addFileFlag(cmd, &opts.configFile)
 	return cmd
 }
 
@@ -385,15 +385,14 @@ func newArrayCommand(stdout, stderr io.Writer) *cobra.Command {
 func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func(format.Document, string, arrayOptions) (string, error), aliases ...string) *cobra.Command {
 	var opts arrayOptions
 	cmd := &cobra.Command{
-		Use:     name + " [CONFIG_FILE] KEY VALUE... [options]",
+		Use:     name + " KEY VALUE... [options]",
 		Aliases: aliases,
 		Short:   short,
 		Args: func(cmd *cobra.Command, args []string) error {
-			configFile, rest, err := parseCommandArgs(args, 2, -1, "usage: config array "+name+" [CONFIG_FILE] KEY VALUE... [options]")
+			rest, err := parseCommandArgs(args, 2, -1, "usage: config array "+name+" KEY VALUE... [options]")
 			if err != nil {
 				return err
 			}
-			opts.configFile = configFile
 			opts.key = rest[0]
 			opts.values = rest[1:]
 			return nil
@@ -406,6 +405,7 @@ func newArrayEditCommand(name, short string, stdout, stderr io.Writer, edit func
 		},
 	}
 	cmd.SetHelpFunc(helpPrinter("array-" + name))
+	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
@@ -499,22 +499,15 @@ func commandHelpTopic(name string) (string, bool) {
 	}
 }
 
-func parseCommandArgs(args []string, minRest, maxRest int, usage string) (string, []string, error) {
-	configFile := ""
-	rest := args
-	if len(args) > 0 && format.TargetPath(args[0]) {
-		configFile = args[0]
-		rest = args[1:]
-	} else if env := os.Getenv("CONFIG_FILE"); env != "" {
-		configFile = env
-	} else {
-		return "", nil, errors.New("config file not specified")
-	}
+func addFileFlag(cmd *cobra.Command, target *string) {
+	cmd.Flags().StringVarP(target, "file", "f", "", "Path to the config file")
+}
 
-	if len(rest) < minRest || (maxRest >= 0 && len(rest) > maxRest) {
-		return "", nil, usageError{usage}
+func parseCommandArgs(args []string, minRest, maxRest int, usage string) ([]string, error) {
+	if len(args) < minRest || (maxRest >= 0 && len(args) > maxRest) {
+		return nil, usageError{usage}
 	}
-	return configFile, rest, nil
+	return args, nil
 }
 
 func helpPrinter(name string) func(*cobra.Command, []string) {
@@ -839,6 +832,9 @@ func writeConfigFile(configFile, updated string) error {
 func resolveConfigFile(explicit string) (string, error) {
 	if explicit != "" {
 		return explicit, nil
+	}
+	if env := os.Getenv("CONFIG_FILE"); env != "" {
+		return env, nil
 	}
 	return "", errors.New("config file not specified")
 }

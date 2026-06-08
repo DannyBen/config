@@ -1,27 +1,27 @@
 Show config values
 
 Usage:
-  config list [CONFIG_FILE] [KEY]
+  config list [KEY]
   config list --help | -h
 
 Aliases:
   ls
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Optional key or table path to list
 
 Options:
+  --file, -f PATH
+    Path to the config file
+
   --color, -c
     Colorize keys and separators
 
 Examples:
-  config list path/to/config.toml
-  config list path/to/config.toml database
-  config list path/to/config.toml database.port
+  config list -f path/to/config.toml
+  config list -f path/to/config.toml database
+  config list -f path/to/config.toml database.port
   config list --color
   config ls --color
   config list

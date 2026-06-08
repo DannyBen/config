@@ -1,11 +1,11 @@
 Open the config file in an editor
 
 Usage:
-  config edit [CONFIG_FILE]
+  config edit [options]
   config edit --help | -h
 
-Parameters:
-  CONFIG_FILE
+Options:
+  --file, -f PATH
     Path to the config file
 
 Environment:
@@ -13,5 +13,5 @@ Environment:
     Editor command to run. Defaults to vi.
 
 Examples:
-  config edit path/to/config.toml
+  config edit -f path/to/config.toml
   config edit

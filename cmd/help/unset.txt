@@ -1,17 +1,17 @@
 Delete a config value
 
 Usage:
-  config unset [CONFIG_FILE] KEY [options]
+  config unset KEY [options]
   config unset --help | -h
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended config key
 
 Options:
+  --file, -f PATH
+    Path to the config file
+
   --in COLLECTION
     Remove a field from a record in COLLECTION. Must be used with --on.
 
@@ -34,8 +34,8 @@ Options:
     Colorize diff output
 
 Examples:
-  config unset path/to/config.toml server.port
+  config unset -f path/to/config.toml server.port
   config unset server.port
   config unset server.port --if 3000
   config unset server.port --if-exists
-  config unset path/to/config.toml port --in servers --on name:api
+  config unset -f path/to/config.toml port --in servers --on name:api

@@ -1,13 +1,10 @@
 Replace a scalar array
 
 Usage:
-  config array set [CONFIG_FILE] KEY VALUE... [options]
+  config array set KEY VALUE... [options]
   config array set --help | -h
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended array key
 
@@ -15,6 +12,9 @@ Parameters:
     Scalar values to store in the array
 
 Options:
+  --file, -f PATH
+    Path to the config file
+
   --dry, -n
     Print the updated config without modifying the file
 

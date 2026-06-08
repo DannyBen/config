@@ -1,20 +1,20 @@
 Delete a config container
 
 Usage:
-  config delete [CONFIG_FILE] KEY [options]
+  config delete KEY [options]
   config delete --help | -h
 
 Aliases:
   del
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended config container
 
 Options:
+  --file, -f PATH
+    Path to the config file
+
   --on FIELD:VALUE
     Select a record by FIELD:VALUE. May be repeated.
 
@@ -31,7 +31,7 @@ Options:
     Colorize diff output
 
 Examples:
-  config delete path/to/config.toml style
+  config delete -f path/to/config.toml style
   config delete servers.1
   config del servers.1
   config delete servers --on name:web

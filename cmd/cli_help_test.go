@@ -54,7 +54,7 @@ func TestHelpCommandShowsCommandHelp(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Create or update config values")
-	assertContains(t, stdout.String(), "config set [CONFIG_FILE] KEY VALUE [options]")
+	assertContains(t, stdout.String(), "config set KEY VALUE [options]")
 }
 
 func TestHelpCommandShowsNestedCommandHelp(t *testing.T) {
@@ -66,7 +66,7 @@ func TestHelpCommandShowsNestedCommandHelp(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	assertContains(t, stdout.String(), "Add values to a scalar array")
-	assertContains(t, stdout.String(), "config array add [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "config array add KEY VALUE... [options]")
 	assertContains(t, stdout.String(), "Creates the array when KEY is not set.")
 }
 
@@ -125,8 +125,8 @@ func TestSetHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config set [CONFIG_FILE] KEY VALUE [options]")
-	assertContains(t, stdout.String(), "CONFIG_FILE\n    Path to the config file")
+	assertContains(t, stdout.String(), "Usage:\n  config set KEY VALUE [options]")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Edit a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select or create a record by FIELD:VALUE")
 	assertContains(t, stdout.String(), "--string, -s\n    Store VALUE as a string")
@@ -147,13 +147,13 @@ func TestDeleteHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config delete [CONFIG_FILE] KEY [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config delete KEY [options]")
 	assertContains(t, stdout.String(), "Aliases:\n  del")
 	assertContains(t, stdout.String(), "config del servers.1")
-	if strings.Contains(stdout.String(), "config del [CONFIG_FILE] KEY [options]") {
+	if strings.Contains(stdout.String(), "config del KEY [options]") {
 		t.Fatalf("delete usage should not include aliases:\n%s", stdout.String())
 	}
-	assertContains(t, stdout.String(), "CONFIG_FILE\n    Path to the config file")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "KEY\n    Dot notation string describing the intended config container")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
 	assertContains(t, stdout.String(), "--if-empty\n    Only delete when the container has no values")
@@ -173,7 +173,8 @@ func TestUnsetHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config unset [CONFIG_FILE] KEY [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config unset KEY [options]")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Remove a field from a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
 	assertContains(t, stdout.String(), "--if VALUE\n    Only unset when the current value matches VALUE")
@@ -199,7 +200,7 @@ func TestArrayHelp(t *testing.T) {
 	if strings.Contains(stdout.String(), "Examples:") {
 		t.Fatalf("array group help should not include examples:\n%s", stdout.String())
 	}
-	if strings.Contains(stdout.String(), "config array add [CONFIG_FILE] KEY VALUE") {
+	if strings.Contains(stdout.String(), "config array add KEY VALUE") {
 		t.Fatalf("array group help should not include subcommand details:\n%s", stdout.String())
 	}
 }
@@ -215,8 +216,9 @@ func TestArraySubcommandHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config array add [CONFIG_FILE] KEY VALUE... [options]\n  config array add --help | -h")
+	assertContains(t, stdout.String(), "Usage:\n  config array add KEY VALUE... [options]\n  config array add --help | -h")
 	assertContains(t, stdout.String(), "Creates the array when KEY is not set.")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 }
 
@@ -231,11 +233,11 @@ func TestArrayDeleteSubcommandHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config array delete [CONFIG_FILE] KEY VALUE... [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config array delete KEY VALUE... [options]")
 	assertContains(t, stdout.String(), "Aliases:\n  del")
 	assertContains(t, stdout.String(), "Deletes KEY when no values remain.")
 	assertContains(t, stdout.String(), "config array del roots /tmp /var/tmp")
-	if strings.Contains(stdout.String(), "config array del [CONFIG_FILE] KEY VALUE... [options]") {
+	if strings.Contains(stdout.String(), "config array del KEY VALUE... [options]") {
 		t.Fatalf("array delete usage should not include aliases:\n%s", stdout.String())
 	}
 }
@@ -251,9 +253,10 @@ func TestGetHelp(t *testing.T) {
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
-	assertContains(t, stdout.String(), "Usage:\n  config get [CONFIG_FILE] KEY [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config get KEY [options]")
 	assertContains(t, stdout.String(), "Scalar values and arrays of scalar values are returned.")
 	assertContains(t, stdout.String(), "Values are printed in a format-neutral display form")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--in COLLECTION\n    Read a field from a record in COLLECTION")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
 }
@@ -270,8 +273,9 @@ func TestDumpHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Dump config data")
-	assertContains(t, stdout.String(), "Usage:\n  config dump [CONFIG_FILE] [KEY] [options]")
+	assertContains(t, stdout.String(), "Usage:\n  config dump [KEY] [options]")
 	assertContains(t, stdout.String(), "KEY\n    Optional key or table path to dump")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--json\n    Dump as JSON instead of YAML")
 }
 
@@ -287,11 +291,12 @@ func TestListHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Show config values")
-	assertContains(t, stdout.String(), "Usage:\n  config list [CONFIG_FILE] [KEY]")
+	assertContains(t, stdout.String(), "Usage:\n  config list [KEY]")
 	assertContains(t, stdout.String(), "Aliases:\n  ls")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize keys and separators")
 	assertContains(t, stdout.String(), "config ls --color")
-	if strings.Contains(stdout.String(), "config ls [CONFIG_FILE] [KEY]") {
+	if strings.Contains(stdout.String(), "config ls [KEY]") {
 		t.Fatalf("list usage should not include aliases:\n%s", stdout.String())
 	}
 }
@@ -308,7 +313,8 @@ func TestEditHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Open the config file in an editor")
-	assertContains(t, stdout.String(), "Usage:\n  config edit [CONFIG_FILE]")
+	assertContains(t, stdout.String(), "Usage:\n  config edit [options]")
+	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
 	assertContains(t, stdout.String(), "EDITOR\n    Editor command to run. Defaults to vi.")
 }
 

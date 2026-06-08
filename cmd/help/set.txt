@@ -1,13 +1,10 @@
 Create or update config values
 
 Usage:
-  config set [CONFIG_FILE] KEY VALUE [options]
+  config set KEY VALUE [options]
   config set --help | -h
 
 Parameters:
-  CONFIG_FILE
-    Path to the config file
-
   KEY
     Dot notation string describing the intended config key
 
@@ -17,6 +14,9 @@ Parameters:
     values are stored as strings. Use `-` to read from stdin.
 
 Options:
+  --file, -f PATH
+    Path to the config file
+
   --in COLLECTION
     Edit a record in COLLECTION
 
@@ -37,23 +37,23 @@ Options:
 
 Examples:
   # Simple update
-  config set path/to/config.toml server.port 3000
+  config set -f path/to/config.toml server.port 3000
 
   # Indexed array-record update
-  config set path/to/config.toml servers.0.port 3000
+  config set -f path/to/config.toml servers.0.port 3000
 
   # Unique array-record update or create
-  config set path/to/config.toml port 3000 --in servers --on name:web
+  config set -f path/to/config.toml port 3000 --in servers --on name:web
 
   # Typed literal value
-  config set path/to/config.toml release.date 2027-03-24
+  config set -f path/to/config.toml release.date 2027-03-24
 
   # String escape hatch
-  config set path/to/config.toml version 1.0 --string
+  config set -f path/to/config.toml version 1.0 --string
 
   # Priming a config file using environment variable
   export CONFIG_FILE=~/.codex/config.toml
   config set server.port 3000
 
   # Reading a multiline string from stdin
-  printf 'hello\nworld' | config set path/to/config.toml title.intro - --string
+  printf 'hello\nworld' | config set -f path/to/config.toml title.intro - --string

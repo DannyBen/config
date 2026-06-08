@@ -24,7 +24,7 @@ func TestEditOpensExplicitConfigFileInEditor(t *testing.T) {
 	t.Setenv("EDITOR", writeEditorScript(t))
 	t.Setenv("CONFIG_EDIT_LOG", logPath)
 
-	err := Execute([]string{"edit", path}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"edit", "-f", path}, "1.2.3", &stdout, &stderr)
 
 	if err != nil {
 		t.Fatalf("Execute returned error: %v", err)
@@ -81,12 +81,12 @@ func TestEditRejectsExtraArguments(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "name = \"demo\"\n")
 
-	err := Execute([]string{"edit", path, "extra"}, "1.2.3", &stdout, &stderr)
+	err := Execute([]string{"edit", "-f", path, "extra"}, "1.2.3", &stdout, &stderr)
 
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if err.Error() != "usage: config edit [CONFIG_FILE]" {
+	if err.Error() != "usage: config edit [options]" {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

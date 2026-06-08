@@ -94,22 +94,3 @@ func TestResolveUnsupportedFormat(t *testing.T) {
 		t.Fatal("expected error")
 	}
 }
-
-func TestTargetPath(t *testing.T) {
-	tests := map[string]bool{
-		"config.toml":  true,
-		"CONFIG.TOML":  true,
-		"config.yaml":  true,
-		"config.yml":   true,
-		"config.json":  true,
-		"config.ini":   true,
-		"config.conf":  false,
-		"server.ports": false,
-	}
-
-	for path, want := range tests {
-		if got := TargetPath(path); got != want {
-			t.Fatalf("TargetPath(%q) = %v, want %v", path, got, want)
-		}
-	}
-}
