@@ -80,7 +80,8 @@ Other archive names use the same pattern:
 
 ## Shell Completion
 
-Shell completion scripts can be generated with `config completion`.
+Shell completion scripts can be generated with `config completion`. Completion
+includes command flags and config keys from `--file` or `CONFIG_FILE`.
 
 ```bash
 config completion bash

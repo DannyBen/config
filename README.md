@@ -44,6 +44,7 @@ Linux `.deb`, `.rpm`, and `.apk` packages, are in [INSTALL.md](INSTALL.md).
   `--in servers --on name:api`.
 - Preview changes with `--dry` or `--diff`.
 - Refuse ambiguous edits instead of silently rewriting the file.
+- Includes shell completion for config keys in supported shells.
 
 ## Usage
 
