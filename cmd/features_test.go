@@ -23,10 +23,15 @@ type featureSpec struct {
 	name          string
 	pending       bool
 	pendingReason string
-	sources       map[string]string
+	sources       map[string]featureSource
 	files         map[string]string
 	results       map[string]string
 	commands      []featureCommand
+}
+
+type featureSource struct {
+	filename string
+	content  string
 }
 
 func TestFeatures(t *testing.T) {
@@ -115,9 +120,9 @@ func runFeatureSpec(t *testing.T, spec featureSpec) {
 	}
 }
 
-func runFeatureFormat(t *testing.T, spec featureSpec, formatName, source string) {
+func runFeatureFormat(t *testing.T, spec featureSpec, formatName string, source featureSource) {
 	t.Helper()
-	temp, target, targetName := writeFeatureFiles(t, spec, formatName, source)
+	temp, target, targetName := writeFeatureFiles(t, spec, source)
 
 	var allStdout, allStderr bytes.Buffer
 	for _, command := range spec.commands {
@@ -128,7 +133,7 @@ func runFeatureFormat(t *testing.T, spec featureSpec, formatName, source string)
 		}
 	}
 
-	verifyFeatureResult(t, spec, formatName, source, target, targetName)
+	verifyFeatureResult(t, spec, formatName, source.content, target, targetName)
 	if allStdout.Len() != 0 {
 		t.Fatalf("unexpected stdout\n%s", unifiedDiff("stdout", "", allStdout.String()))
 	}
@@ -137,12 +142,12 @@ func runFeatureFormat(t *testing.T, spec featureSpec, formatName, source string)
 	}
 }
 
-func writeFeatureFiles(t *testing.T, spec featureSpec, formatName, source string) (string, string, string) {
+func writeFeatureFiles(t *testing.T, spec featureSpec, source featureSource) (string, string, string) {
 	t.Helper()
-	targetName := "config." + formatName
 	temp := t.TempDir()
+	targetName := source.filename
 	target := filepath.Join(temp, targetName)
-	if err := os.WriteFile(target, []byte(source), 0644); err != nil {
+	if err := os.WriteFile(target, []byte(source.content), 0644); err != nil {
 		t.Fatal(err)
 	}
 	for name, content := range spec.files {
@@ -247,6 +252,11 @@ func expectedFeatureOutput(common string, byFormat map[string]string, formatName
 	if value, ok := byFormat[formatName]; ok {
 		return value
 	}
+	if base, _, ok := strings.Cut(formatName, "/"); ok {
+		if value, ok := byFormat[base]; ok {
+			return value
+		}
+	}
 	return common
 }
 
@@ -258,6 +268,7 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 	}
 	spec := newFeatureSpec(path)
 	section := ""
+	subsection := ""
 	lines := strings.Split(string(content), "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
@@ -272,16 +283,21 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 		}
 		if strings.HasPrefix(line, "## ") {
 			section = strings.TrimSpace(strings.TrimPrefix(line, "## "))
+			subsection = ""
 			validateFeatureSection(t, path, section)
 			continue
 		}
+		if strings.HasPrefix(line, "### ") {
+			subsection = strings.TrimSpace(strings.TrimPrefix(line, "### "))
+			continue
+		}
 		if strings.HasPrefix(line, "```") {
-			language, name := parseFenceInfo(strings.TrimSpace(strings.TrimPrefix(line, "```")))
+			language := parseFenceLanguage(strings.TrimSpace(strings.TrimPrefix(line, "```")))
 			if language == "" {
-				t.Fatalf("%s: fenced code block missing format at line %d", path, i+1)
+				t.Fatalf("%s: fenced code block missing language at line %d", path, i+1)
 			}
 			block, next := readFeatureFence(t, path, lines, i+1)
-			parseFeatureFenceBlock(t, path, &spec, section, language, name, block)
+			parseFeatureFenceBlock(t, path, &spec, section, subsection, language, block)
 			i = next
 			continue
 		}
@@ -300,7 +316,7 @@ func parseFeatureSpec(t *testing.T, path string) featureSpec {
 func newFeatureSpec(path string) featureSpec {
 	spec := featureSpec{
 		name:    strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)),
-		sources: make(map[string]string),
+		sources: make(map[string]featureSource),
 		files:   make(map[string]string),
 		results: make(map[string]string),
 	}
@@ -317,20 +333,28 @@ func validateFeatureSection(t *testing.T, path, section string) {
 	}
 }
 
-func parseFeatureFenceBlock(t *testing.T, path string, spec *featureSpec, section, language, name, block string) {
+func parseFeatureFenceBlock(t *testing.T, path string, spec *featureSpec, section, subsection, language, block string) {
 	t.Helper()
 	switch section {
 	case "Source Files":
-		if name == "" {
-			spec.sources[language] = block
+		if subsection == "" {
+			t.Fatalf("%s: source file block missing ### heading", path)
+		}
+		file := parseFeatureFileHeading(t, path, subsection)
+		if file.config {
+			spec.sources[file.key] = featureSource{filename: file.filename, content: block}
 		} else {
-			spec.files[name] = block
+			spec.files[file.filename] = block
 		}
 	case "Result Files":
-		if name != "" {
-			t.Fatalf("%s: result file block cannot have filename %q", path, name)
+		if subsection == "" {
+			t.Fatalf("%s: result file block missing ### heading", path)
 		}
-		spec.results[language] = block
+		file := parseFeatureFileHeading(t, path, subsection)
+		if !file.config {
+			t.Fatalf("%s: result file heading %q is not a config file", path, subsection)
+		}
+		spec.results[file.key] = block
 	case "Commands":
 		if language != "shell" && language != "sh" {
 			t.Fatalf("%s: command block must use shell, got %q", path, language)
@@ -338,6 +362,51 @@ func parseFeatureFenceBlock(t *testing.T, path string, spec *featureSpec, sectio
 		parseFeatureCommandBlock(t, path, spec, block)
 	default:
 		t.Fatalf("%s: unexpected fenced block in section %q", path, section)
+	}
+}
+
+type featureFileHeading struct {
+	key      string
+	filename string
+	config   bool
+}
+
+func parseFeatureFileHeading(t *testing.T, path, heading string) featureFileHeading {
+	t.Helper()
+	kind, filename, explicit := splitFeatureFileHeading(heading)
+	if ext, ok := configExtension(kind); ok {
+		if !explicit {
+			filename = "config." + ext
+			return featureFileHeading{key: kind, filename: filename, config: true}
+		}
+		return featureFileHeading{key: kind + "/" + filename, filename: filename, config: true}
+	}
+	if explicit {
+		t.Fatalf("%s: unknown config file heading %q", path, heading)
+	}
+	return featureFileHeading{filename: heading}
+}
+
+func splitFeatureFileHeading(heading string) (string, string, bool) {
+	trimmed := strings.TrimSpace(heading)
+	if before, after, ok := strings.Cut(trimmed, " ("); ok && strings.HasSuffix(after, ")") {
+		return strings.ToLower(strings.TrimSpace(before)), strings.TrimSpace(strings.TrimSuffix(after, ")")), true
+	}
+	return strings.ToLower(trimmed), "", false
+}
+
+func configExtension(kind string) (string, bool) {
+	switch strings.ToLower(kind) {
+	case "toml":
+		return "toml", true
+	case "yaml":
+		return "yaml", true
+	case "json":
+		return "json", true
+	case "ini":
+		return "ini", true
+	default:
+		return "", false
 	}
 }
 
@@ -460,15 +529,12 @@ func isFeatureFormat(name string) bool {
 	}
 }
 
-func parseFenceInfo(info string) (string, string) {
+func parseFenceLanguage(info string) string {
 	parts := strings.Fields(info)
 	if len(parts) == 0 {
-		return "", ""
+		return ""
 	}
-	if len(parts) == 1 {
-		return parts[0], ""
-	}
-	return parts[0], parts[1]
+	return parts[0]
 }
 
 func readFeatureFence(t *testing.T, path string, lines []string, start int) (string, int) {
@@ -488,7 +554,7 @@ func TestParseFeatureSpec(t *testing.T) {
 	path := filepath.Join("..", "features", "set", "basic.md")
 	spec := parseFeatureSpec(t, path)
 
-	if len(spec.sources) != 4 || spec.sources["yaml"] == "" || spec.sources["toml"] == "" || spec.sources["json"] == "" || spec.sources["ini"] == "" {
+	if len(spec.sources) != 4 || spec.sources["yaml"].content == "" || spec.sources["toml"].content == "" || spec.sources["json"].content == "" || spec.sources["ini"].content == "" {
 		t.Fatalf("sources not parsed: %#v", spec.sources)
 	}
 	if len(spec.commands) != 3 {
@@ -517,7 +583,7 @@ func TestParseFeatureSpec(t *testing.T) {
 	}
 
 	pendingPath := filepath.Join(t.TempDir(), "PENDING-example.md")
-	if err := os.WriteFile(pendingPath, []byte("# pending/example\n\n> PENDING Example pending reason.\n\n## Source Files\n\n```yaml\nvalue: old\n```\n\n## Commands\n\n```shell\nconfig set value new\n```\n"), 0644); err != nil {
+	if err := os.WriteFile(pendingPath, []byte("# pending/example\n\n> PENDING Example pending reason.\n\n## Source Files\n\n### YAML\n\n```yaml\nvalue: old\n```\n\n## Commands\n\n```shell\nconfig set value new\n```\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	pending := parseFeatureSpec(t, pendingPath)
@@ -528,8 +594,8 @@ func TestParseFeatureSpec(t *testing.T) {
 		t.Fatalf("pending reason = %q", pending.pendingReason)
 	}
 
-	if language, name := parseFenceInfo("text value.txt"); language != "text" || name != "value.txt" {
-		t.Fatalf("parseFenceInfo = %q %q", language, name)
+	if language := parseFenceLanguage("text value.txt"); language != "text" {
+		t.Fatalf("parseFenceLanguage = %q", language)
 	}
 }
 
