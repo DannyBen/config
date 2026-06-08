@@ -1,6 +1,15 @@
 Changelog
 ========================================
 
+v0.1.7 - 2026-06-08
+----------------------------------------
+
+- Replace `CONFIG_FILE` positional arg with `--file PATH` [`5347dce`](https://github.com/dannyben/config/commit/5347dce)
+- Improve all help texts [`111a735`](https://github.com/dannyben/config/commit/111a735)
+- Add format auto detection and format hint comments [`a3b5e83`](https://github.com/dannyben/config/commit/a3b5e83)
+- Compare [`v0.1.6..v0.1.7`](https://github.com/dannyben/config/compare/v0.1.6..v0.1.7)
+
+
 v0.1.6 - 2026-06-08
 ----------------------------------------
 
