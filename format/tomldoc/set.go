@@ -56,6 +56,10 @@ func validateTOML(source string) error {
 	return nil
 }
 
+func Valid(source string) bool {
+	return parseTOMLSource(source) == nil
+}
+
 func parseTOMLSource(source string) error {
 	if err := validateTOML(source); err != nil {
 		return err

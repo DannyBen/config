@@ -110,6 +110,8 @@ func TestHelpCommandShowsFormatsTopic(t *testing.T) {
 	assertContains(t, stdout.String(), "Topic: formats")
 	assertContains(t, stdout.String(), "TOML")
 	assertContains(t, stdout.String(), ".json")
+	assertContains(t, stdout.String(), "Unknown extensions")
+	assertContains(t, stdout.String(), "# format: ini")
 	assertContains(t, stdout.String(), "canonical pretty JSON")
 }
 

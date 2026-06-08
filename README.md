@@ -34,6 +34,8 @@ Linux `.deb`, `.rpm`, and `.apk` packages, are in [INSTALL.md](INSTALL.md).
 - Set, unset, delete, and list values by dot path.
 - Replace, add, and remove scalar array values with `config array` in TOML,
   YAML, and JSON files.
+- Detect config formats for files with unknown extensions, with explicit
+  comment hints for ambiguous TOML/INI files.
 - Preserve comments and source formatting where possible.
 - Infer common value types such as numbers, booleans, nulls, and dates where
   the file format supports them.

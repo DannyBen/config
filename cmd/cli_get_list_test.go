@@ -96,7 +96,7 @@ func TestGetFailsWhenConfigFileIsNotSpecified(t *testing.T) {
 	}
 }
 
-func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) {
+func TestGetAmbiguousUnknownExtensionReportsFormatHint(t *testing.T) {
 	clearConfigFileEnv(t)
 	var stdout, stderr bytes.Buffer
 	path := filepath.Join(t.TempDir(), "config.conf")
@@ -112,8 +112,44 @@ func TestGetUnsupportedExplicitConfigFileReportsUnsupportedFormat(t *testing.T) 
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	if err.Error() != "unsupported config format for "+path {
+	if err.Error() != "ambiguous config format for "+path+"; add # format: toml or # format: ini" {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestGetDetectsUnknownExtensionWithFormatHint(t *testing.T) {
+	clearConfigFileEnv(t)
+	var stdout, stderr bytes.Buffer
+	path := filepath.Join(t.TempDir(), "settings.conf")
+	if err := os.WriteFile(path, []byte("# format: ini\n[database]\nport = 5432\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := Execute([]string{"get", "-f", path, "database.port"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.String() != "5432\n" {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+}
+
+func TestListDetectsConfigFileEnvWithUnknownExtension(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := filepath.Join(t.TempDir(), "settings.conf")
+	if err := os.WriteFile(path, []byte("# format: ini\n[database]\nport = 5432\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("CONFIG_FILE", path)
+
+	err := Execute([]string{"list", "database"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.String() != "database.port=5432\n" {
+		t.Fatalf("stdout = %q", stdout.String())
 	}
 }
 

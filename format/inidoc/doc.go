@@ -467,6 +467,39 @@ func parse(source string) (document, error) {
 	return doc, nil
 }
 
+func Valid(source string) bool {
+	doc, err := parse(source)
+	if err != nil {
+		return false
+	}
+	return len(doc.entries) > 0 && hasINIShape(source) && !hasTOMLArrayTable(source)
+}
+
+func hasINIShape(source string) bool {
+	lines, _ := splitLines(source)
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, ";") {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "[") || strings.Contains(line, "=") {
+			return true
+		}
+	}
+	return false
+}
+
+func hasTOMLArrayTable(source string) bool {
+	lines, _ := splitLines(source)
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "[[") {
+			return true
+		}
+	}
+	return false
+}
+
 func replaceLineValue(source string, index int, value string) (string, error) {
 	lines, trailing := splitLines(source)
 	if index < 0 || index >= len(lines) {

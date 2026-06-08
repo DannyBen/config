@@ -6,7 +6,7 @@ Set reads a string value from stdin when the value argument is `-`.
 
 ### value.txt
 
-```text value.txt
+```text
 line one
 line two
 ```
