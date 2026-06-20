@@ -1,6 +1,13 @@
 Changelog
 ========================================
 
+v0.2.0 - 2026-06-20
+----------------------------------------
+
+- Add `config list --match TEXT` and `config use` without args to show the file in use [`de9fc18`](https://github.com/dannyben/config/commit/de9fc18)
+- Compare [`v0.1.9..v0.2.0`](https://github.com/dannyben/config/compare/v0.1.9..v0.2.0)
+
+
 v0.1.9 - 2026-06-20
 ----------------------------------------
 
