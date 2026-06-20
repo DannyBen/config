@@ -59,6 +59,7 @@ type deleteOptions struct {
 	key        string
 	on         []string
 	ifEmpty    bool
+	ifExists   bool
 	dry        bool
 	diff       bool
 	color      bool
@@ -295,6 +296,7 @@ func newDeleteCommand(stdout, stderr io.Writer) *cobra.Command {
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().StringArrayVar(&opts.on, "on", nil, "Select a record by FIELD:VALUE")
 	cmd.Flags().BoolVar(&opts.ifEmpty, "if-empty", false, "Only delete when the container has no values")
+	cmd.Flags().BoolVar(&opts.ifExists, "if-exists", false, "Do nothing when KEY is not set")
 	cmd.Flags().BoolVarP(&opts.dry, "dry", "n", false, "Print the updated config without modifying the file")
 	cmd.Flags().BoolVarP(&opts.diff, "diff", "d", false, "Print a unified diff without modifying the file")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize diff output")
@@ -650,6 +652,13 @@ func isNotSetError(err error) bool {
 	return strings.HasSuffix(err.Error(), " is not set")
 }
 
+func isMissingDeleteTargetError(err error) bool {
+	msg := err.Error()
+	return strings.HasSuffix(msg, " is not set") ||
+		strings.Contains(msg, " has no record at index ") ||
+		strings.Contains(msg, " has no records matching ")
+}
+
 func runDelete(opts deleteOptions, stdout, stderr io.Writer) error {
 	if opts.ifEmpty && len(opts.on) > 0 {
 		return errors.New("flag --if-empty cannot be used with --on")
@@ -658,7 +667,11 @@ func runDelete(opts deleteOptions, stdout, stderr io.Writer) error {
 		if opts.ifEmpty {
 			return doc.DeleteIfEmpty(source, opts.key)
 		}
-		return doc.Delete(source, opts.key, opts.on)
+		updated, err := doc.Delete(source, opts.key, opts.on)
+		if err != nil && opts.ifExists && isMissingDeleteTargetError(err) {
+			return source, nil
+		}
+		return updated, err
 	})
 }
 

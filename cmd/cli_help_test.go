@@ -174,6 +174,7 @@ func TestDeleteHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "KEY\n    Dot notation string describing the intended config container")
 	assertContains(t, stdout.String(), "--on FIELD:VALUE\n    Select a record by FIELD:VALUE. May be repeated.")
 	assertContains(t, stdout.String(), "--if-empty\n    Only delete when the container has no values")
+	assertContains(t, stdout.String(), "--if-exists\n    Do nothing when KEY is not set")
 	assertContains(t, stdout.String(), "--dry, -n\n    Print the updated config without modifying the file")
 	assertContains(t, stdout.String(), "--diff, -d\n    Print a unified diff without modifying the file")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize diff output")

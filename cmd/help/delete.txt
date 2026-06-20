@@ -21,6 +21,9 @@ Options:
   --if-empty
     Only delete when the container has no values
 
+  --if-exists
+    Do nothing when KEY is not set
+
   --dry, -n
     Print the updated config without modifying the file
 
@@ -46,3 +49,6 @@ Examples:
 
   # Delete only when the container is empty
   config delete tui.keymap.composer --if-empty
+
+  # Delete if the container exists
+  config delete style --if-exists

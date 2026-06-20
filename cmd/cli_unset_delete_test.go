@@ -294,6 +294,40 @@ func TestDeleteIfEmptyNoOpsWhenContainerHasValues(t *testing.T) {
 	}
 }
 
+func TestDeleteIfExistsIgnoresMissingContainer(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[style]\ncolor = \"blue\"\n")
+
+	err := Execute([]string{"delete", "-f", path, "missing", "--if-exists"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if got := readFile(t, path); got != "[style]\ncolor = \"blue\"\n" {
+		t.Fatalf("file mismatch: %q", got)
+	}
+}
+
+func TestDeleteIfExistsIgnoresMissingSelectedRecord(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "[[servers]]\nname = \"api\"\nport = 3000\n")
+
+	err := Execute([]string{"delete", "-f", path, "servers", "--on", "name:web", "--if-exists"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q", stdout.String())
+	}
+	if got := readFile(t, path); got != "[[servers]]\nname = \"api\"\nport = 3000\n" {
+		t.Fatalf("file mismatch: %q", got)
+	}
+}
+
 func TestDeleteRefusesScalarValue(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[style]\ncolor = \"blue\"\nfont = \"arial\"\n")
