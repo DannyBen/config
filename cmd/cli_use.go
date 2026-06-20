@@ -14,17 +14,22 @@ import (
 
 type useOptions struct {
 	configFile string
+	status     bool
 }
 
 func newUseCommand(stdout, stderr io.Writer) *cobra.Command {
 	var opts useOptions
 	cmd := &cobra.Command{
-		Use:   "use FILE",
+		Use:   "use [FILE]",
 		Short: "Use a config file in a child shell",
 		Args: func(cmd *cobra.Command, args []string) error {
-			rest, err := parseCommandArgs(args, 1, 1, "usage: config use FILE")
+			rest, err := parseCommandArgs(args, 0, 1, "usage: config use [FILE]")
 			if err != nil {
 				return err
+			}
+			if len(rest) == 0 {
+				opts.status = true
+				return nil
 			}
 			opts.configFile = rest[0]
 			return nil
@@ -40,6 +45,10 @@ func newUseCommand(stdout, stderr io.Writer) *cobra.Command {
 var runShell = runShellCommand
 
 func runUse(opts useOptions, stdin io.Reader, stdout, stderr io.Writer) error {
+	if opts.status {
+		return runUseStatus(stdout)
+	}
+
 	configFile, err := resolveUseConfigFile(opts.configFile)
 	if err != nil {
 		return err
@@ -51,6 +60,16 @@ func runUse(opts useOptions, stdin io.Reader, stdout, stderr io.Writer) error {
 
 	fmt.Fprintf(stderr, "Using %s.\nExit the shell to stop.\n", opts.configFile)
 	return runShell(shell, withConfigFileEnv(os.Environ(), configFile), stdin, stdout, stderr)
+}
+
+func runUseStatus(stdout io.Writer) error {
+	if configFile := os.Getenv("CONFIG_FILE"); configFile != "" {
+		fmt.Fprintf(stdout, "Using %s\n", configFile)
+	} else {
+		fmt.Fprintln(stdout, "No config file is in use")
+	}
+	fmt.Fprintln(stdout, "usage: config use FILE")
+	return nil
 }
 
 func resolveUseConfigFile(configFile string) (string, error) {

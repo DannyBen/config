@@ -18,6 +18,9 @@ Options:
   --keys, -k
     Print only keys
 
+  --match, -m TEXT
+    Print only keys that contain TEXT
+
   --color, -c
     Colorize keys and separators
 
@@ -34,3 +37,6 @@ Examples:
 
   # List only keys
   config list --keys
+
+  # List keys containing text
+  config list --match model

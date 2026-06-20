@@ -77,6 +77,7 @@ type arrayOptions struct {
 type listOptions struct {
 	configFile string
 	key        string
+	match      string
 	keys       bool
 	color      bool
 }
@@ -328,6 +329,7 @@ func newListCommand(stdout io.Writer) *cobra.Command {
 	cmd.ValidArgsFunction = completeKeyArg(&opts.configFile, 0, completeAnyKeys)
 	addFileFlag(cmd, &opts.configFile)
 	cmd.Flags().BoolVarP(&opts.keys, "keys", "k", false, "Print only keys")
+	cmd.Flags().StringVarP(&opts.match, "match", "m", "", "Print only keys that contain this text")
 	cmd.Flags().BoolVarP(&opts.color, "color", "c", false, "Colorize keys and separators")
 	return cmd
 }
@@ -714,12 +716,26 @@ func runList(opts listOptions, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
+	entries = filterListEntries(entries, opts.match)
 	if opts.keys {
 		fmt.Fprint(stdout, renderListKeys(entries, opts.color))
 		return nil
 	}
 	fmt.Fprint(stdout, renderList(entries, opts.color))
 	return nil
+}
+
+func filterListEntries(entries []format.Entry, match string) []format.Entry {
+	if match == "" {
+		return entries
+	}
+	filtered := make([]format.Entry, 0, len(entries))
+	for _, entry := range entries {
+		if strings.Contains(entry.Key, match) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
 }
 
 func runDump(opts dumpOptions, stdout io.Writer) error {

@@ -85,6 +85,11 @@ config list
 -> sections.2.tags.0=dev
 -> sections.2.tags.1=api
 
+config list --match caption
+-> sections.0.caption=Getting Started
+-> sections.1.caption=Installation
+-> sections.2.caption=API
+
 config list style
 -> style.color=red
 -> style.size=14

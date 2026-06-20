@@ -300,6 +300,36 @@ func TestListPrintsOnlyKeys(t *testing.T) {
 	}
 }
 
+func TestListPrintsOnlyMatchingKeys(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "model = \"gpt-5\"\n\n[server]\nmodel = \"small\"\nport = 3000\n")
+
+	err := Execute([]string{"list", "-f", path, "--match", "model"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "model=gpt-5\nserver.model=small\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestListPrintsOnlyMatchingKeysWithShortFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "model = \"gpt-5\"\n\n[server]\nmodel = \"small\"\nport = 3000\n")
+
+	err := Execute([]string{"list", "-f", path, "-k", "-m", "model"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "model\nserver.model\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
 func TestListPrintsOnlyKeysWithColor(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	path := writeTempTOML(t, "[server]\nport = 3000\n")
@@ -325,6 +355,21 @@ func TestListPrintsOnlyKeysUnderTable(t *testing.T) {
 		t.Fatalf("Execute returned error: %v", err)
 	}
 	want := "server.port\nserver.enabled\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+}
+
+func TestListPrintsOnlyMatchingKeysUnderTable(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	path := writeTempTOML(t, "model = \"gpt-5\"\n\n[server]\nmodel = \"small\"\nport = 3000\n")
+
+	err := Execute([]string{"list", "-f", path, "server", "-m", "model"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "server.model=small\n"
 	if stdout.String() != want {
 		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
 	}

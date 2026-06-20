@@ -47,6 +47,43 @@ func TestUseStartsShellWithConfigFileEnv(t *testing.T) {
 	assertContains(t, stderr.String(), "Using "+configFile+".\nExit the shell to stop.")
 }
 
+func TestUsePrintsCurrentConfigFileStatus(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	configFile := writeTempTOML(t, "app = { name = \"demo\" }\n")
+	t.Setenv("CONFIG_FILE", configFile)
+
+	err := Execute([]string{"use"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "Using " + configFile + "\nusage: config use FILE\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+}
+
+func TestUsePrintsNoCurrentConfigFileStatus(t *testing.T) {
+	clearConfigFileEnv(t)
+	var stdout, stderr bytes.Buffer
+
+	err := Execute([]string{"use"}, "1.2.3", &stdout, &stderr)
+
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	want := "No config file is in use\nusage: config use FILE\n"
+	if stdout.String() != want {
+		t.Fatalf("stdout mismatch\nwant:\n%s\ngot:\n%s", want, stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+}
+
 func TestUseResolvesRelativeConfigFile(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	tmpdir := t.TempDir()

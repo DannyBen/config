@@ -312,6 +312,7 @@ func TestListHelp(t *testing.T) {
 	assertContains(t, stdout.String(), "Usage:\n  config list [KEY]")
 	assertContains(t, stdout.String(), "Aliases:\n  ls")
 	assertContains(t, stdout.String(), "--file, -f PATH\n    Path to the config file")
+	assertContains(t, stdout.String(), "--match, -m TEXT\n    Print only keys that contain TEXT")
 	assertContains(t, stdout.String(), "--color, -c\n    Colorize keys and separators")
 	assertContains(t, stdout.String(), "config list database.port --color")
 	if strings.Contains(stdout.String(), "config ls [KEY]") {
@@ -348,7 +349,8 @@ func TestUseHelp(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	assertContains(t, stdout.String(), "Use a config file in a child shell")
-	assertContains(t, stdout.String(), "Usage:\n  config use FILE")
+	assertContains(t, stdout.String(), "Usage:\n  config use\n  config use FILE")
+	assertContains(t, stdout.String(), "Run without FILE to show the current CONFIG_FILE status")
 	assertContains(t, stdout.String(), "Starts a child shell with CONFIG_FILE set")
 	assertContains(t, stdout.String(), "SHELL\n    Shell executable to start")
 }

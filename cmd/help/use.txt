@@ -1,6 +1,7 @@
 Use a config file in a child shell
 
 Usage:
+  config use
   config use FILE
   config use --help | -h
 
@@ -9,6 +10,7 @@ Parameters:
     Path to the config file to use
 
 Notes:
+  Run without FILE to show the current CONFIG_FILE status.
   Starts a child shell with CONFIG_FILE set to the absolute path of FILE.
   The parent shell and config file are not modified. Exit the child shell to
   stop using FILE.
