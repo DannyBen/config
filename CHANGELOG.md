@@ -1,6 +1,15 @@
 Changelog
 ========================================
 
+v0.1.9 - 2026-06-20
+----------------------------------------
+
+- Add config keys to shell completion [`c8a8157`](https://github.com/dannyben/config/commit/c8a8157)
+- Fix YAML delete verification [`837d3be`](https://github.com/dannyben/config/commit/837d3be)
+- Add `delete --if-exists` [`b1d9b98`](https://github.com/dannyben/config/commit/b1d9b98)
+- Compare [`v0.1.8..v0.1.9`](https://github.com/dannyben/config/compare/v0.1.8..v0.1.9)
+
+
 v0.1.8 - 2026-06-08
 ----------------------------------------
 
