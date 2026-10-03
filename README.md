@@ -57,28 +57,64 @@ Supported config files:
 
 Run `config help formats` for format-specific behavior.
 
-```bash
-config get -f path/to/config.toml server.port
-config set -f path/to/config.toml server.port 3000
-config array add -f path/to/config.toml sandbox_workspace_write.writable_roots '$HOME/.cache'
-config unset -f path/to/config.toml server.password
-config list -f path/to/config.toml server
-```
+### Using a config file
 
-For repeated edits, set `CONFIG_FILE` once:
+Use `config use FILE` to start a shell for repeated commands on one file.
+Run `exit` when finished.
 
 ```bash
-export CONFIG_FILE=~/.codex/config.toml
-config get tui.keymap.composer.submit
-config set tui.keymap.composer.submit tab
-config edit
+config use app.toml
+config get server.port
+config list server
+exit
 ```
 
-Use `--diff` or `--diff --color` (`-dc`) to preview an edit:
+<img src="support/vhs/use.gif" width="500">
+
+### Editing values
+
+Change a value while preserving comments and nearby formatting.
+The demos share this [example TOML file](support/vhs/app.toml).
 
 ```bash
-config set -f config.yaml server.port 3000 -dc
+config use app.toml
+config set server.port 3000
 ```
+
+<img src="support/vhs/set.gif" width="500">
+
+### Previewing changes
+
+Use `--diff --color` (`-dc`) to preview an edit before applying it.
+
+```bash
+config set server.port 3000 --diff --color
+config set server.port 3000
+```
+
+<img src="support/vhs/diff.gif" width="500">
+
+### Modifying arrays
+
+Add or remove scalar values in TOML, YAML, and JSON arrays.
+
+```bash
+config array add plugins.enabled cache
+config array delete plugins.enabled metrics
+```
+
+<img src="support/vhs/array.gif" width="500">
+
+### Specifying a file directly
+
+For individual commands, use `-f FILE` instead of opening a shell.
+
+```bash
+config get -f app.toml server.port
+config set -f app.toml logging.level debug
+```
+
+<img src="support/vhs/file.gif" width="500">
 
 Use `--string` when a value should remain text even if it looks like a typed
 literal:
@@ -97,3 +133,8 @@ config set -f config.toml port 3000 --in servers --on name:api
 
 The [features](features/) folder contains readable examples that also run as
 acceptance tests.
+
+## Contributing / Support
+
+For issues, questions, suggestions, or contributions,
+[open an issue](https://github.com/DannyBen/config/issues).

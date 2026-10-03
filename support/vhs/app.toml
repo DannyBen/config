@@ -1,0 +1,10 @@
+# Local development server
+[server]
+host = "127.0.0.1"
+port = 8080 # HTTP port
+
+[logging]
+level = "info"
+
+[plugins]
+enabled = ["search", "metrics"]
